@@ -1,5 +1,5 @@
 ARG BUILDER_IMAGE=index.docker.io/library/ubuntu@sha256:cf31af331f38d1d7158470e095b132acd126a7180a54f263d386da88eb681d93
-ARG RUNTIME_IMAGE=gcr.io/distroless/static@sha256:cd784033c94dd30546456f35de8e128390ae15c48cbee5eb7e3306857ec17631
+ARG RUNTIME_IMAGE=gcr.io/distroless/base@sha256:bc84925113289d139a9ef2f309f0dd7ac46ea7b786f172ba9084ffdb4cbd9490
 
 
 FROM $BUILDER_IMAGE AS builder
@@ -21,4 +21,4 @@ FROM $BUILDER_IMAGE AS builder
 FROM $RUNTIME_IMAGE
 
 	COPY --from=builder /usr/local/bin/monerod /usr/local/bin/monerod
-	ENTRYPOINT [ "monerod" ]
+	ENTRYPOINT [ "monerod", "--non-interactive" ]

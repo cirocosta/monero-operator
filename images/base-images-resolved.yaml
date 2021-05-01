@@ -1,17 +1,23 @@
 ---
 images:
 - image: index.docker.io/library/ubuntu@sha256:cf31af331f38d1d7158470e095b132acd126a7180a54f263d386da88eb681d93
-- image: gcr.io/distroless/static@sha256:cd784033c94dd30546456f35de8e128390ae15c48cbee5eb7e3306857ec17631
+- image: gcr.io/distroless/base@sha256:bc84925113289d139a9ef2f309f0dd7ac46ea7b786f172ba9084ffdb4cbd9490
+- image: index.docker.io/utxobr/monerod@sha256:19ba5793c00375e7115469de9c14fcad928df5867c76ab5de099e83f646e175d
 metadata:
   annotations:
     kbld.k14s.io/images: |
       - Metas:
         - Tag: nonroot
           Type: resolved
-          URL: gcr.io/distroless/static:nonroot
-        URL: gcr.io/distroless/static@sha256:cd784033c94dd30546456f35de8e128390ae15c48cbee5eb7e3306857ec17631
+          URL: gcr.io/distroless/base:nonroot
+        URL: gcr.io/distroless/base@sha256:bc84925113289d139a9ef2f309f0dd7ac46ea7b786f172ba9084ffdb4cbd9490
       - Metas:
         - Tag: latest
           Type: resolved
           URL: ubuntu
         URL: index.docker.io/library/ubuntu@sha256:cf31af331f38d1d7158470e095b132acd126a7180a54f263d386da88eb681d93
+      - Metas:
+        - Tag: v0.17.2.0
+          Type: resolved
+          URL: utxobr/monerod:v0.17.2.0
+        URL: index.docker.io/utxobr/monerod@sha256:19ba5793c00375e7115469de9c14fcad928df5867c76ab5de099e83f646e175d
