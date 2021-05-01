@@ -1,0 +1,3 @@
+images:
+- image: ubuntu
+- image: gcr.io/distroless/static:nonroot
