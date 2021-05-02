@@ -6,14 +6,14 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: (devel)
   creationTimestamp: null
-  name: moneronodes.utxo.com.br
+  name: moneronodesets.utxo.com.br
 spec:
   group: utxo.com.br
   names:
-    kind: MoneroNode
-    listKind: MoneroNodeList
-    plural: moneronodes
-    singular: moneronode
+    kind: MoneroNodeSet
+    listKind: MoneroNodeSetList
+    plural: moneronodesets
+    singular: moneronodeset
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
@@ -40,6 +40,26 @@ spec:
           metadata:
             type: object
           spec:
+            properties:
+              hardAntiAffinity:
+                type: boolean
+              monerod:
+                properties:
+                  config:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                  image:
+                    type: string
+                required:
+                - config
+                type: object
+              replicas:
+                default: 1
+                format: int32
+                type: integer
+            required:
+            - monerod
+            - replicas
             type: object
           status:
             properties:

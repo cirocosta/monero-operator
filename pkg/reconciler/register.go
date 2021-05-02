@@ -26,17 +26,17 @@ func AddToScheme(scheme *runtime.Scheme) error {
 }
 
 func RegisterReconcilers(mgr manager.Manager) error {
-	if err := RegisterMoneroNodeReconciler(mgr); err != nil {
-		return fmt.Errorf("register moneronode reconciler: %w")
+	if err := RegisterMoneroNodeSetReconciler(mgr); err != nil {
+		return fmt.Errorf("register moneronodeset reconciler: %w")
 	}
 
 	return nil
 }
 
-func RegisterMoneroNodeReconciler(mgr manager.Manager) error {
-	c, err := controller.New("moneronode-reconciler", mgr, controller.Options{
-		Reconciler: &MoneroNodeReconciler{
-			Log:    mgr.GetLogger().WithName("moneronode-reconciler"),
+func RegisterMoneroNodeSetReconciler(mgr manager.Manager) error {
+	c, err := controller.New("moneronodeset-reconciler", mgr, controller.Options{
+		Reconciler: &MoneroNodeSetReconciler{
+			Log:    mgr.GetLogger().WithName("moneronodeset-reconciler"),
 			Client: mgr.GetClient(),
 		},
 	})
@@ -45,7 +45,7 @@ func RegisterMoneroNodeReconciler(mgr manager.Manager) error {
 	}
 
 	if err := c.Watch(
-		&source.Kind{Type: &v1alpha1.MoneroNode{}},
+		&source.Kind{Type: &v1alpha1.MoneroNodeSet{}},
 		&handler.EnqueueRequestForObject{},
 	); err != nil {
 		return fmt.Errorf("watch: %w", err)
