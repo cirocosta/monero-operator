@@ -1,4 +1,0 @@
-images:
-- image: ubuntu
-- image: gcr.io/distroless/base:nonroot
-- image: utxobr/monerod:v0.17.2.0

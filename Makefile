@@ -1,17 +1,12 @@
 build:
 	go build -o cmd/controller/controller -v ./cmd/controller
-
-
 run: build
 	./cmd/controller/controller
 
 
-monerod-image:
-	docker build \
-		-t utxobr/monerod:v0.17.2.0 \
-		-f ./images/monerod.Dockerfile \
-			./images
-	docker push utxobr/monerod:v0.17.2.0
+.PHONY: images
+images:
+	kbld -f ./images/images.yaml > ./images/resolved.yaml
 
 
 install-crds:
@@ -34,4 +29,3 @@ generate:
 	controller-gen \
 		object \
 		paths=./pkg/apis/utxo.com.br/v1alpha1
-

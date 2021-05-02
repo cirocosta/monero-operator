@@ -1,0 +1,17 @@
+apiVersion: kbld.k14s.io/v1alpha1
+kind: Config
+sources:
+  - image: monerod
+    path: ./images/monerod
+  - image: xmrig
+    path: ./images/xmrig
+destinations:
+  - image: monerod
+    newImage: docker.io/utxobr/monerod
+  - image: xmrig
+    newImage: docker.io/utxobr/xmrig
+
+---
+images:
+  - image: monerod
+  - image: xmrig
