@@ -6,7 +6,7 @@ run: build
 
 .PHONY: images
 images:
-	kbld -f ./images/images.yaml > ./images/resolved.yaml
+	kbld --images-annotation=false -f ./images/images.yaml > ./images/resolved.yaml
 
 
 install-crds:
