@@ -19,11 +19,11 @@ behind the scenes.
    MoneroNodeSet
         |
         '--- service
-        '--- statefulset -- replicaset -- {pod1,    ...,   podN}
-        '--- configmap                        |               |
-                                              |               |
-                                            mounts          mounts
-                                          pvc_1+configmap  pvc_n+configmap
+        '--- statefulset -- controllerrevision -- {pod1,    ...,   podN}
+        '--- configmap                              |               |
+                                                    |               |
+                                                  mounts          mounts
+                                                pvc_1+configmap  pvc_n+configmap
 ```
 
 
