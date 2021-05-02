@@ -42,7 +42,7 @@ Its definition supports the following fields:
     monero daemon and details like related proxies for non-clearnet usage.
     - `image`: image to use for launching the pod with _monerod_
     - `config`: extra configuration to be passed down to _monerod_. This is a
-      free-form map whose values get passed down to the `monerod.conf` file
+      free-form map whose values get passed down to the _monerod.conf_ file
       overriding the default configuration (you can find the final
       _monerod.conf_ by looking at the ConfigMap owned by this object).
 
