@@ -3,7 +3,7 @@
 With `monero-operator` you'll have access to three custom resource definitions:
 
 - [`MoneroNodeSet`](#moneronodeset): set of monero nodes that share a similar configuration
-- [`MoneroCluster`](#monerocluster): set of monero node sets that form a cluster of nodes
+- [`MoneroNetwork`](#moneronetwork): set of monero node sets that form a cluster of interconnected nodes
 - [`MoneroMiningNodeSet`](#monerominingnodeset): a set of monero mining nodes
   that perform either solo or pooled mining
 
@@ -53,6 +53,8 @@ For instance:
 ```yaml
 kind: MoneroNodeSet
 apiVersion: utxo.com.br/v1alpha1
+metadata:
+  name: node-set
 spec:
   replicas: 5
   monerod:
@@ -106,6 +108,8 @@ For instance:
 ```yaml
 kind: MoneroNetwork
 apiVersion: utxo.com.br/v1alpha1
+metadata:
+  name: testnet
 spec:
   replicas: 5
   monerod:
@@ -142,14 +146,15 @@ Its definition supports the following fields:
   `MoneroNode` object. For example, a `name`.
 - [`spec`][kubernetes-overview] - Specifies the configuration information for
   this `MoneroNode` object. This must include:
-  - [`monerod`](#configuring-monerod) - Specifies the configuration for the
-    monero daemon and details like related proxies for non-clearnet usage.
+  - `xmrig` - Specifies the configuration to be passsed for the
 
 For instance,
 
 ```yaml
 kind: MoneroMiningNodeSet
 apiVersion: utxo.com.br/v1alpha1
+metadata:
+  name: miners
 spec:
   replicas: 5
   xmrig:
@@ -160,8 +165,8 @@ spec:
       cuda: false
       pools:
         - url: pool.supportxmr.com:443
-          user: $my_wallet_address
-          pass: worker-1
+          user: 891B5keCnwXN14hA9FoAzGFtaWmcuLjTDT5aRTp65juBLkbNpEhLNfgcBn6aWdGuBqBnSThqMPsGRjWVQadCrhoAT6CnSL3
+          pass: $(pod.name)
           keepalive: true
           tls: true
 ```
