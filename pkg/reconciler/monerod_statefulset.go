@@ -8,25 +8,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
-)
-
-const (
-	P2PPortName          = "p2p"
-	P2PPortNumber uint16 = 18080
-
-	RestrictedPortName          = "restricted"
-	RestrictedPortNumber uint16 = 18089
-
-	MonerodContainerName      = "monerod"
-	MonerodContainerImage     = "index.docker.io/utxobr/monerod@sha256:19ba5793c00375e7115469de9c14fcad928df5867c76ab5de099e83f646e175d"
-	MonerodContainerProbePath = "/get_info"
-	MonerodContainerProbePort = RestrictedPortName
-
-	MonerodDataVolumeName      = "data"
-	MonerodDataVolumeMountPath = "/data"
-
-	MonerodConfigVolumeName      = "monerod-conf"
-	MonerodConfigVolumeMountPath = "/monerod-conf"
+	"k8s.io/utils/pointer"
 )
 
 func AppLabel(name string) map[string]string {
@@ -99,9 +81,9 @@ func NewStatefulSet(name, namespace string) *appsv1.StatefulSet {
 	obj.Spec = appsv1.StatefulSetSpec{
 		ServiceName: name,
 
-		Replicas: int32p(1),
+		Replicas: pointer.Int32Ptr(1),
 
-		RevisionHistoryLimit: int32p(0),
+		RevisionHistoryLimit: pointer.Int32Ptr(0),
 
 		Selector: &metav1.LabelSelector{
 			MatchLabels: AppLabel(name),
@@ -112,7 +94,7 @@ func NewStatefulSet(name, namespace string) *appsv1.StatefulSet {
 				Labels: AppLabel(name),
 			},
 			Spec: corev1.PodSpec{
-				TerminationGracePeriodSeconds: int64p(60),
+				TerminationGracePeriodSeconds: pointer.Int64Ptr(60),
 				Volumes: []corev1.Volume{
 					{
 						Name: MonerodConfigVolumeName,
@@ -150,14 +132,4 @@ func NewStatefulSet(name, namespace string) *appsv1.StatefulSet {
 	}
 
 	return obj
-}
-
-func int32p(v int32) *int32 {
-	i := v
-	return &i
-}
-
-func int64p(v int64) *int64 {
-	i := v
-	return &i
 }
