@@ -46,8 +46,9 @@ spec:
               monerod:
                 properties:
                   config:
+                    additionalProperties:
+                      type: string
                     type: object
-                    x-kubernetes-preserve-unknown-fields: true
                   image:
                     type: string
                 required:

@@ -2,7 +2,6 @@ package v1alpha1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	runtime "k8s.io/apimachinery/pkg/runtime"
 )
 
 // +kubebuilder:object:root=true
@@ -26,10 +25,8 @@ type MoneroNodeSetSpec struct {
 }
 
 type MonerodConfig struct {
-	Image string `json:"image,omitempty"`
-
-	//+kubebuilder:pruning:PreserveUnknownFields
-	Config runtime.RawExtension `json:"config"`
+	Image  string            `json:"image,omitempty"`
+	Config map[string]string `json:"config"`
 }
 
 type MoneroNodeSetStatus struct {

@@ -1,6 +1,8 @@
 package reconciler
 
 import (
+	"path"
+
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -22,37 +24,10 @@ const (
 
 	MonerodDataVolumeName      = "data"
 	MonerodDataVolumeMountPath = "/data"
+
+	MonerodConfigVolumeName      = "monerod-conf"
+	MonerodConfigVolumeMountPath = "/monerod-conf"
 )
-
-func NewService(name, namespace string) *corev1.Service {
-	obj := &corev1.Service{}
-
-	obj.ObjectMeta = metav1.ObjectMeta{
-		Name:      name,
-		Namespace: namespace,
-		Labels:    AppLabel(name),
-	}
-
-	obj.Spec = corev1.ServiceSpec{
-		Selector: map[string]string{},
-
-		Ports: []corev1.ServicePort{
-			{
-				Name:     P2PPortName,
-				Port:     int32(P2PPortNumber),
-				Protocol: corev1.ProtocolTCP,
-			},
-
-			{
-				Name:     RestrictedPortName,
-				Port:     int32(RestrictedPortNumber),
-				Protocol: corev1.ProtocolTCP,
-			},
-		},
-	}
-
-	return obj
-}
 
 func AppLabel(name string) map[string]string {
 	return map[string]string{
@@ -66,15 +41,8 @@ func NewMonerodContainer() corev1.Container {
 		Image: MonerodContainerImage,
 		Command: []string{
 			"monerod",
-			"--data-dir=" + MonerodDataVolumeMountPath,
-			"--enable-dns-blocklist",
-			"--no-igd",
 			"--non-interactive",
-			"--p2p-bind-ip=0.0.0.0",
-			"--p2p-bind-port=18080",
-			"--rpc-restricted-bind-ip=0.0.0.0",
-			"--rpc-restricted-bind-port=18089",
-			"--testnet",
+			"--config-file=" + path.Join(MonerodConfigVolumeMountPath, "monerod.conf"),
 		},
 		ReadinessProbe: &corev1.Probe{
 			PeriodSeconds:       15,
@@ -105,6 +73,10 @@ func NewMonerodContainer() corev1.Container {
 				Name:      MonerodDataVolumeName,
 				MountPath: MonerodDataVolumeMountPath,
 			},
+			{
+				Name:      MonerodConfigVolumeName,
+				MountPath: MonerodConfigVolumeMountPath,
+			},
 		},
 	}
 
@@ -113,6 +85,11 @@ func NewMonerodContainer() corev1.Container {
 
 func NewStatefulSet(name, namespace string) *appsv1.StatefulSet {
 	obj := &appsv1.StatefulSet{}
+
+	obj.TypeMeta = metav1.TypeMeta{
+		Kind:       "StatefulSet",
+		APIVersion: appsv1.SchemeGroupVersion.Identifier(),
+	}
 
 	obj.ObjectMeta = metav1.ObjectMeta{
 		Name:      name,
@@ -136,6 +113,18 @@ func NewStatefulSet(name, namespace string) *appsv1.StatefulSet {
 			},
 			Spec: corev1.PodSpec{
 				TerminationGracePeriodSeconds: int64p(60),
+				Volumes: []corev1.Volume{
+					{
+						Name: MonerodConfigVolumeName,
+						VolumeSource: corev1.VolumeSource{
+							ConfigMap: &corev1.ConfigMapVolumeSource{
+								LocalObjectReference: corev1.LocalObjectReference{
+									Name: name,
+								},
+							},
+						},
+					},
+				},
 				Containers: []corev1.Container{
 					NewMonerodContainer(),
 				},
