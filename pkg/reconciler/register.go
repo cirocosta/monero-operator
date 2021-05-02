@@ -30,6 +30,31 @@ func RegisterReconcilers(mgr manager.Manager) error {
 		return fmt.Errorf("register moneronodeset reconciler: %w")
 	}
 
+	if err := RegisterMoneroNetworkReconciler(mgr); err != nil {
+		return fmt.Errorf("register moneronetwork reconciler: %w")
+	}
+
+	return nil
+}
+
+func RegisterMoneroNetworkReconciler(mgr manager.Manager) error {
+	c, err := controller.New("moneronetwork-reconciler", mgr, controller.Options{
+		Reconciler: &MoneroNetworkReconciler{
+			Log:    mgr.GetLogger().WithName("moneronetwork-reconciler"),
+			Client: mgr.GetClient(),
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("new controller: %w", err)
+	}
+
+	if err := c.Watch(
+		&source.Kind{Type: &v1alpha1.MoneroNetwork{}},
+		&handler.EnqueueRequestForObject{},
+	); err != nil {
+		return fmt.Errorf("watch: %w", err)
+	}
+
 	return nil
 }
 

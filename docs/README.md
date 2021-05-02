@@ -109,14 +109,16 @@ For instance:
 kind: MoneroNetwork
 apiVersion: utxo.com.br/v1alpha1
 metadata:
-  name: testnet
+  name: regtest
 spec:
-  replicas: 5
-  monerod:
-    image: utxobr/monerod:v0.17.0.2             # override default image
-    config:
-      limit-rate-up: 128000                     # override the default config
-      testnet: 1
+  template:                             # configuration to be passed down
+    spec:                               # to the nodesets
+      replicas: 5
+      monerod:
+        image: utxobr/monerod:v0.17.0.2
+        config:
+          limit-rate-up: 128000
+          regtest: 1
 ```
 
 
