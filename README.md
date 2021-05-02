@@ -10,24 +10,27 @@ Features:
 - Tor and I2P
 - notifications
 
+See [./docs](./docs).
+
 
 ## Usage
 
 1. install
 
-```console
+```bash
 # submit the customresourcedefinition objects, deployment, role-base access
 # control configs, etc.
 #
-$ kubectl apply -f ./config/release.yaml
+kubectl apply -f ./config/release.yaml
 ```
 
 2. submit a description of the intention of having a `monero` node running
 
 ```yaml
 apiVersion: utxo.com.br/v1alpha1
-kind: MoneroNode
+kind: MoneroNodeSet
 spec:
+  replicas: 1
   monerod:
     image: utxobr/monerod:v0.17.2
 ```
@@ -39,6 +42,7 @@ spec:
 ```console
 $ kubectl get moneronode node-1 -o jsonpath={.status}
 ```
+
 
 ## Support
 

@@ -4,7 +4,6 @@ metadata:
   name: network
 spec:
   replicas: 3
-
   template:
     spec:
       replicas: 1
