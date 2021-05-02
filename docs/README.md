@@ -36,10 +36,12 @@ Its definition supports the following fields:
   `MoneroNode` object. For example, a `name`.
 - [`spec`][kubernetes-overview] - Specifies the configuration information for
   this `MoneroNode` object. This must include:
-  - [`monerod`](#configuring-monerod) - Specifies the configuration for the
+  - `replicas` - number of pods to have running `monerod`
+  - `hardAntiAffinity` - force pods to land on different underlying machines
+  - `monerod` - Specifies the configuration for the
     monero daemon and details like related proxies for non-clearnet usage.
-    - [`image`]: image to use for launching the pod with `monerod`
-    - [`config`]: extra configuration to be passed down to `monerod`. This is a
+    - `image`: image to use for launching the pod with `monerod`
+    - `config`: extra configuration to be passed down to `monerod`. This is a
       free-form map whose values get passed down to the `monerod.conf` file
       overriding the default configuration (you can find the final
       `monerod.conf` by looking at the ConfigMap owned by this object).
