@@ -2,7 +2,10 @@ package main
 
 import (
 	"fmt"
+	"net/http"
+	"os"
 
+	"github.com/jessevdk/go-flags"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -17,6 +20,10 @@ func init() {
 	log.SetLogger(zap.New(zap.UseDevMode(true)))
 }
 
+var opts = struct {
+	Verbose bool `long:"verbose" short:"v" description:"dump all requests"`
+}{}
+
 func run() error {
 	scheme := runtime.NewScheme()
 
@@ -24,7 +31,14 @@ func run() error {
 		return fmt.Errorf("add to scheme: %w", err)
 	}
 
-	mgr, err := manager.New(config.GetConfigOrDie(), manager.Options{
+	cfg := config.GetConfigOrDie()
+	if opts.Verbose {
+		cfg.WrapTransport = func(rt http.RoundTripper) http.RoundTripper {
+			return NewDumpTransport(rt)
+		}
+	}
+
+	mgr, err := manager.New(cfg, manager.Options{
 		MetricsBindAddress: "0",
 		Scheme:             scheme,
 	})
@@ -44,6 +58,10 @@ func run() error {
 }
 
 func main() {
+	if _, err := flags.Parse(&opts); err != nil {
+		os.Exit(1)
+	}
+
 	entryLog := log.Log.WithName("entrypoint")
 	entryLog.Info("initializing")
 
