@@ -31,13 +31,6 @@ spec:
         app: monero
     spec:
       terminationGracePeriodSeconds: 60
-      readinessProbe:
-        periodSeconds: 15
-        initialDelaySeconds: 15
-        failureThreshold: 5
-        httpGet:
-          path: /get_info
-          port: restricted-rpc
       containers:
         - name: monero
           image: index.docker.io/utxobr/monerod@sha256:19ba5793c00375e7115469de9c14fcad928df5867c76ab5de099e83f646e175d
@@ -54,6 +47,13 @@ spec:
             - --p2p-bind-port=18080
             - --data-dir=/data
             - --testnet
+          readinessProbe:
+            periodSeconds: 15
+            initialDelaySeconds: 15
+            failureThreshold: 5
+            httpGet:
+              path: /get_info
+              port: restricted-rpc
           ports:
             - containerPort: 18089
               name: restricted-rpc

@@ -1,0 +1,10 @@
+kind: MoneroNodeSet
+apiVersion: utxo.com.br/v1alpha1
+metadata:
+  name: node-set
+spec:
+  replicas: 5
+  monerod:
+    image: utxobr/monerod:v0.17.0.2
+    config:
+      limit-rate-up: "128000"
