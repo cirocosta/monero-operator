@@ -85,7 +85,8 @@ func (r *MoneroNetworkReconciler) AssembleMoneroNodeSet(
 	network *v1alpha1.MoneroNetwork,
 	idx int,
 ) (*v1alpha1.MoneroNodeSet, error) {
-	args := network.Spec.Template.Spec.Monerod.Args
+	spec := *network.Spec.Template.Spec.DeepCopy()
+	args := spec.Monerod.Args
 
 	for i := 0; i < int(network.Spec.Replicas); i++ {
 		if i == idx {
@@ -97,7 +98,7 @@ func (r *MoneroNetworkReconciler) AssembleMoneroNodeSet(
 		})
 	}
 
-	network.Spec.Template.Spec.Monerod.Args = args
+	spec.Monerod.Args = args
 
 	o := &v1alpha1.MoneroNodeSet{
 		TypeMeta: metav1.TypeMeta{
@@ -110,7 +111,7 @@ func (r *MoneroNetworkReconciler) AssembleMoneroNodeSet(
 			Namespace: network.Namespace,
 		},
 
-		Spec: network.Spec.Template.Spec,
+		Spec: spec,
 	}
 
 	r.SetOwnerRef(network, o)
