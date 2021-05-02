@@ -10,7 +10,9 @@ images:
 
 
 install-crds:
-	kapp deploy -a monero -f ./config/bases/crds.yaml
+	kapp deploy -a monero -f ./config/bases/crds.yaml --yes
+uninstall-crds:
+	kapp delete -a monero --yes
 
 
 release:
