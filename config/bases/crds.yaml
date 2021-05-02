@@ -41,6 +41,9 @@ spec:
             type: object
           spec:
             properties:
+              diskSize:
+                default: 50Gi
+                type: string
               hardAntiAffinity:
                 type: boolean
               monerod:
@@ -58,6 +61,8 @@ spec:
                 default: 1
                 format: int32
                 type: integer
+              storageClass:
+                type: string
             required:
             - monerod
             - replicas

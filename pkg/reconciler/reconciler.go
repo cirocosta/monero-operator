@@ -58,6 +58,23 @@ func (r *MoneroNodeSetReconciler) ReconcileMoneroNodeSet(
 		return fmt.Errorf("setup statefulset: %w", err)
 	}
 
+	// perhaps .. wait until it's _really_ ready?
+	// - check if it's in sync, etc
+
+	nodeSet.Status.Conditions = []metav1.Condition{
+		{
+			Type:               "Ready",
+			Status:             metav1.ConditionTrue,
+			LastTransitionTime: metav1.Now(),
+			Reason:             "ObjectsSubmitted",
+			Message:            "configmap, service, and statefulset successfully submitted",
+		},
+	}
+
+	if err := r.Client.Status().Update(ctx, nodeSet); err != nil {
+		return fmt.Errorf("status update: %w", err)
+	}
+
 	return nil
 }
 
@@ -100,7 +117,7 @@ func (r *MoneroNodeSetReconciler) SetupStatefulSet(
 	nodeSet *v1alpha1.MoneroNodeSet,
 ) (*appsv1.StatefulSet, error) {
 
-	ss := NewStatefulSet(nodeSet.Name, nodeSet.Namespace)
+	ss := NewStatefulSet(nodeSet)
 	r.SetOwnerRef(nodeSet, ss)
 
 	if err := r.Apply(ctx, ss); err != nil {
@@ -129,6 +146,10 @@ func (r *MoneroNodeSetReconciler) SetOwnerRef(
 	nodeSet *v1alpha1.MoneroNodeSet,
 	obj client.Object,
 ) {
+	if len(obj.GetOwnerReferences()) > 0 {
+		return
+	}
+
 	obj.SetOwnerReferences([]metav1.OwnerReference{
 		{
 			APIVersion:         nodeSet.GetObjectKind().GroupVersionKind().GroupVersion().String(),

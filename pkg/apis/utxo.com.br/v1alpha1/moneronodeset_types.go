@@ -19,9 +19,13 @@ type MoneroNodeSet struct {
 
 type MoneroNodeSetSpec struct {
 	//+kubebuilder:default=1
-	Replicas         uint32        `json:"replicas"`
-	HardAntiAffinity bool          `json:"hardAntiAffinity,omitempty"`
-	Monerod          MonerodConfig `json:"monerod,omityempty"`
+	Replicas         uint32 `json:"replicas"`
+	HardAntiAffinity bool   `json:"hardAntiAffinity,omitempty"`
+	//+kubebuilder:default="50Gi"
+	DiskSize     string `json:"diskSize,omitempty"`
+	StorageClass string `json:"storageClass,omitempty"`
+
+	Monerod MonerodConfig `json:"monerod,omityempty"`
 }
 
 type MonerodConfig struct {

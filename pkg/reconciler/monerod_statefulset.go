@@ -3,6 +3,7 @@ package reconciler
 import (
 	"path"
 
+	v1alpha1 "github.com/cirocosta/monero-operator/pkg/apis/utxo.com.br/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -17,7 +18,7 @@ func AppLabel(name string) map[string]string {
 	}
 }
 
-func NewMonerodContainer() corev1.Container {
+func NewMonerodContainer(nodeSet *v1alpha1.MoneroNodeSet) corev1.Container {
 	obj := corev1.Container{
 		Name:  MonerodContainerName,
 		Image: MonerodContainerImage,
@@ -65,7 +66,73 @@ func NewMonerodContainer() corev1.Container {
 	return obj
 }
 
-func NewStatefulSet(name, namespace string) *appsv1.StatefulSet {
+func NewPodTemplateSpec(nodeSet *v1alpha1.MoneroNodeSet) corev1.PodTemplateSpec {
+	o := corev1.PodTemplateSpec{
+		ObjectMeta: metav1.ObjectMeta{
+			Labels: AppLabel(nodeSet.Name),
+		},
+		Spec: corev1.PodSpec{
+			TerminationGracePeriodSeconds: pointer.Int64Ptr(60),
+			Volumes: []corev1.Volume{
+				{
+					Name: MonerodConfigVolumeName,
+					VolumeSource: corev1.VolumeSource{
+						ConfigMap: &corev1.ConfigMapVolumeSource{
+							LocalObjectReference: corev1.LocalObjectReference{
+								Name: nodeSet.Name,
+							},
+						},
+					},
+				},
+			},
+			Containers: []corev1.Container{
+				NewMonerodContainer(nodeSet),
+			},
+		},
+	}
+
+	if nodeSet.Spec.HardAntiAffinity == true {
+		o.Spec.Affinity = &corev1.Affinity{
+			PodAntiAffinity: &corev1.PodAntiAffinity{
+				RequiredDuringSchedulingIgnoredDuringExecution: []corev1.PodAffinityTerm{
+					{
+						LabelSelector: &metav1.LabelSelector{
+							MatchLabels: AppLabel(nodeSet.Name),
+						},
+					},
+				},
+			},
+		}
+	}
+
+	return o
+}
+
+func NewVolumeClaimTemplate(nodeSet *v1alpha1.MoneroNodeSet) corev1.PersistentVolumeClaim {
+	o := corev1.PersistentVolumeClaim{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: MonerodDataVolumeName,
+		},
+		Spec: corev1.PersistentVolumeClaimSpec{
+			AccessModes: []corev1.PersistentVolumeAccessMode{
+				corev1.ReadWriteOnce,
+			},
+			Resources: corev1.ResourceRequirements{
+				Requests: corev1.ResourceList{
+					corev1.ResourceStorage: resource.MustParse(nodeSet.Spec.DiskSize),
+				},
+			},
+		},
+	}
+
+	if nodeSet.Spec.StorageClass != "" {
+		o.Spec.StorageClassName = pointer.StringPtr(nodeSet.Spec.StorageClass)
+	}
+
+	return o
+}
+
+func NewStatefulSet(nodeSet *v1alpha1.MoneroNodeSet) *appsv1.StatefulSet {
 	obj := &appsv1.StatefulSet{}
 
 	obj.TypeMeta = metav1.TypeMeta{
@@ -74,60 +141,22 @@ func NewStatefulSet(name, namespace string) *appsv1.StatefulSet {
 	}
 
 	obj.ObjectMeta = metav1.ObjectMeta{
-		Name:      name,
-		Namespace: namespace,
+		Name:      nodeSet.Name,
+		Namespace: nodeSet.Namespace,
 	}
 
 	obj.Spec = appsv1.StatefulSetSpec{
-		ServiceName: name,
-
-		Replicas: pointer.Int32Ptr(1),
+		ServiceName: nodeSet.Name,
+		Replicas:    pointer.Int32Ptr(int32(nodeSet.Spec.Replicas)),
 
 		RevisionHistoryLimit: pointer.Int32Ptr(0),
-
 		Selector: &metav1.LabelSelector{
-			MatchLabels: AppLabel(name),
+			MatchLabels: AppLabel(nodeSet.Name),
 		},
 
-		Template: corev1.PodTemplateSpec{
-			ObjectMeta: metav1.ObjectMeta{
-				Labels: AppLabel(name),
-			},
-			Spec: corev1.PodSpec{
-				TerminationGracePeriodSeconds: pointer.Int64Ptr(60),
-				Volumes: []corev1.Volume{
-					{
-						Name: MonerodConfigVolumeName,
-						VolumeSource: corev1.VolumeSource{
-							ConfigMap: &corev1.ConfigMapVolumeSource{
-								LocalObjectReference: corev1.LocalObjectReference{
-									Name: name,
-								},
-							},
-						},
-					},
-				},
-				Containers: []corev1.Container{
-					NewMonerodContainer(),
-				},
-			},
-		},
+		Template: NewPodTemplateSpec(nodeSet),
 		VolumeClaimTemplates: []corev1.PersistentVolumeClaim{
-			{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: MonerodDataVolumeName,
-				},
-				Spec: corev1.PersistentVolumeClaimSpec{
-					AccessModes: []corev1.PersistentVolumeAccessMode{
-						corev1.ReadWriteOnce,
-					},
-					Resources: corev1.ResourceRequirements{
-						Requests: corev1.ResourceList{
-							corev1.ResourceStorage: resource.MustParse("20Gi"),
-						},
-					},
-				},
-			},
+			NewVolumeClaimTemplate(nodeSet),
 		},
 	}
 

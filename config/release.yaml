@@ -4,14 +4,14 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: (devel)
   creationTimestamp: null
-  name: moneronodes.utxo.com.br
+  name: moneronodesets.utxo.com.br
 spec:
   group: utxo.com.br
   names:
-    kind: MoneroNode
-    listKind: MoneroNodeList
-    plural: moneronodes
-    singular: moneronode
+    kind: MoneroNodeSet
+    listKind: MoneroNodeSetList
+    plural: moneronodesets
+    singular: moneronodeset
   scope: Namespaced
   versions:
     - additionalPrinterColumns:
@@ -34,6 +34,32 @@ spec:
             metadata:
               type: object
             spec:
+              properties:
+                diskSize:
+                  default: 50Gi
+                  type: string
+                hardAntiAffinity:
+                  type: boolean
+                monerod:
+                  properties:
+                    config:
+                      additionalProperties:
+                        type: string
+                      type: object
+                    image:
+                      type: string
+                  required:
+                    - config
+                  type: object
+                replicas:
+                  default: 1
+                  format: int32
+                  type: integer
+                storageClass:
+                  type: string
+              required:
+                - monerod
+                - replicas
               type: object
             status:
               properties:
@@ -92,6 +118,39 @@ status:
     plural: ""
   conditions: []
   storedVersions: []
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: monero-controller
+  namespace: monero-system
+spec:
+  selector:
+    matchLabels:
+      app: monero-controller
+  replicas: 1
+  revisionHistoryLimit: 0
+  template:
+    metadata:
+      labels:
+        app: monero-controller
+    spec:
+      serviceAccount: monero-controller
+      containers:
+        - name: monero-controller
+          image: utxobr/controller-f62eb94ecf12d650192241a4cf3963c9@sha256:b61e8754f1642717b7ecd57867ec8afdb54c5f6be1f81a056be74cc59496c8a4
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - all
+          resources:
+            requests:
+              cpu: 200m
+              memory: 200Mi
 
 ---
 
