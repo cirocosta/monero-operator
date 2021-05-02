@@ -18,6 +18,8 @@ type MoneroNetwork struct {
 }
 
 type MoneroNetworkSpec struct {
+	//+kubebuilder:default=3
+	Replicas uint32                `json:"replicas"`
 	Template MoneroNetworkTemplate `json:"template"`
 }
 

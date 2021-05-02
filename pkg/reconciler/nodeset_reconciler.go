@@ -46,10 +46,6 @@ func (r *MoneroNodeSetReconciler) ReconcileMoneroNodeSet(
 	ctx context.Context,
 	nodeSet *v1alpha1.MoneroNodeSet,
 ) error {
-	if _, err := r.SetupConfigMap(ctx, nodeSet); err != nil {
-		return fmt.Errorf("setup configmap: %w", err)
-	}
-
 	if _, err := r.SetupService(ctx, nodeSet); err != nil {
 		return fmt.Errorf("setup service: %w", err)
 	}
@@ -76,25 +72,6 @@ func (r *MoneroNodeSetReconciler) ReconcileMoneroNodeSet(
 	}
 
 	return nil
-}
-
-func (r *MoneroNodeSetReconciler) SetupConfigMap(
-	ctx context.Context,
-	nodeSet *v1alpha1.MoneroNodeSet,
-) (*corev1.ConfigMap, error) {
-	config := NewDefaultMonerodConfig()
-	for k, v := range nodeSet.Spec.Monerod.Config {
-		config[k] = v
-	}
-
-	cm := config.ConfigMap(nodeSet.Name, nodeSet.Namespace)
-	r.SetOwnerRef(nodeSet, cm)
-
-	if err := r.Apply(ctx, cm); err != nil {
-		return nil, fmt.Errorf("apply: %w", err)
-	}
-
-	return nil, nil
 }
 
 func (r *MoneroNodeSetReconciler) SetupService(
@@ -143,7 +120,7 @@ func (r *MoneroNodeSetReconciler) GetMoneroNodeSet(
 }
 
 func (r *MoneroNodeSetReconciler) SetOwnerRef(
-	nodeSet *v1alpha1.MoneroNodeSet,
+	parent *v1alpha1.MoneroNodeSet,
 	obj client.Object,
 ) {
 	if len(obj.GetOwnerReferences()) > 0 {
@@ -152,10 +129,10 @@ func (r *MoneroNodeSetReconciler) SetOwnerRef(
 
 	obj.SetOwnerReferences([]metav1.OwnerReference{
 		{
-			APIVersion:         nodeSet.GetObjectKind().GroupVersionKind().GroupVersion().String(),
-			Kind:               nodeSet.GetObjectKind().GroupVersionKind().Kind,
-			Name:               nodeSet.GetName(),
-			UID:                nodeSet.GetUID(),
+			APIVersion:         parent.GetObjectKind().GroupVersionKind().GroupVersion().String(),
+			Kind:               parent.GetObjectKind().GroupVersionKind().Kind,
+			Name:               parent.GetName(),
+			UID:                parent.GetUID(),
 			BlockOwnerDeletion: pointer.BoolPtr(true),
 			Controller:         pointer.BoolPtr(true),
 		},

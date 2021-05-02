@@ -48,14 +48,12 @@ spec:
                 type: boolean
               monerod:
                 properties:
-                  config:
-                    additionalProperties:
+                  args:
+                    items:
                       type: string
-                    type: object
+                    type: array
                   image:
                     type: string
-                required:
-                - config
                 type: object
               replicas:
                 default: 1
@@ -193,6 +191,10 @@ spec:
             type: object
           spec:
             properties:
+              replicas:
+                default: 3
+                format: int32
+                type: integer
               template:
                 properties:
                   metadata:
@@ -206,14 +208,12 @@ spec:
                         type: boolean
                       monerod:
                         properties:
-                          config:
-                            additionalProperties:
+                          args:
+                            items:
                               type: string
-                            type: object
+                            type: array
                           image:
                             type: string
-                        required:
-                        - config
                         type: object
                       replicas:
                         default: 1
@@ -229,6 +229,7 @@ spec:
                 - spec
                 type: object
             required:
+            - replicas
             - template
             type: object
           status:

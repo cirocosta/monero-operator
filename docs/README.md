@@ -20,10 +20,8 @@ behind the scenes.
         |
         '--- service
         '--- statefulset -- controllerrevision -- {pod1,    ...,   podN}
-        '--- configmap                              |               |
                                                     |               |
-                                                  mounts          mounts
-                                                pvc_1+configmap  pvc_n+configmap
+                                                   pvc             pvc
 ```
 
 
@@ -41,10 +39,8 @@ Its definition supports the following fields:
   - `monerod` - Specifies the configuration for the
     monero daemon and details like related proxies for non-clearnet usage.
     - `image`: image to use for launching the pod with _monerod_
-    - `config`: extra configuration to be passed down to _monerod_. This is a
-      free-form map whose values get passed down to the _monerod.conf_ file
-      overriding the default configuration (you can find the final
-      _monerod.conf_ by looking at the ConfigMap owned by this object).
+    - `args`: extra configuration to be passed down to _monerod_. This is a
+      free-form list of arguments to be passed to _monerod_.
 
 [kubernetes-overview]: https://kubernetes.io/docs/concepts/overview/working-with-objects/kubernetes-objects/#required-fields
 
@@ -58,9 +54,9 @@ metadata:
 spec:
   replicas: 5
   monerod:
-    image: utxobr/monerod:v0.17.0.2             # override default image
-    config:
-      limit-rate-up: 128000                     # override the default config
+    image: utxobr/monerod:v0.17.0.2
+    args:
+      - --limit-rate-up=128000
 ```
 
 
@@ -111,14 +107,14 @@ apiVersion: utxo.com.br/v1alpha1
 metadata:
   name: regtest
 spec:
-  template:                             # configuration to be passed down
-    spec:                               # to the nodesets
-      replicas: 5
+  replicas: 3
+  template:
+    spec:  
       monerod:
         image: utxobr/monerod:v0.17.0.2
-        config:
-          limit-rate-up: 128000
-          regtest: 1
+        args:
+          - --regtest
+          - --limit-rate-up=128000
 ```
 
 

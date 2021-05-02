@@ -29,8 +29,8 @@ type MoneroNodeSetSpec struct {
 }
 
 type MonerodConfig struct {
-	Image  string            `json:"image,omitempty"`
-	Config map[string]string `json:"config"`
+	Image string   `json:"image,omitempty"`
+	Args  []string `json:"args,omitempty"`
 }
 
 type MoneroNodeSetStatus struct {

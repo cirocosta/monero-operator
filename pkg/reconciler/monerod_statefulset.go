@@ -1,8 +1,6 @@
 package reconciler
 
 import (
-	"path"
-
 	v1alpha1 "github.com/cirocosta/monero-operator/pkg/apis/utxo.com.br/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -19,14 +17,28 @@ func AppLabel(name string) map[string]string {
 }
 
 func NewMonerodContainer(nodeSet *v1alpha1.MoneroNodeSet) corev1.Container {
+	defaultArgs := []string{
+		"--data-dir=" + MonerodDataVolumeMountPath,
+
+		"--non-interactive",
+		"--no-zmq",
+		"--no-igd",
+
+		"--p2p-bind-ip=0.0.0.0",
+		"--p2p-bind-port=18080",
+
+		"--rpc-restricted-bind-ip=0.0.0.0",
+		"--rpc-restricted-bind-port=18089",
+	}
+
+	command := append([]string{
+		"monerod",
+	}, MergedSlice(defaultArgs, nodeSet.Spec.Monerod.Args)...)
+
 	obj := corev1.Container{
-		Name:  MonerodContainerName,
-		Image: MonerodContainerImage,
-		Command: []string{
-			"monerod",
-			"--non-interactive",
-			"--config-file=" + path.Join(MonerodConfigVolumeMountPath, "monerod.conf"),
-		},
+		Name:    MonerodContainerName,
+		Image:   MonerodContainerImage,
+		Command: command,
 		ReadinessProbe: &corev1.Probe{
 			PeriodSeconds:       15,
 			InitialDelaySeconds: 15,
@@ -56,10 +68,6 @@ func NewMonerodContainer(nodeSet *v1alpha1.MoneroNodeSet) corev1.Container {
 				Name:      MonerodDataVolumeName,
 				MountPath: MonerodDataVolumeMountPath,
 			},
-			{
-				Name:      MonerodConfigVolumeName,
-				MountPath: MonerodConfigVolumeMountPath,
-			},
 		},
 	}
 
@@ -73,18 +81,6 @@ func NewPodTemplateSpec(nodeSet *v1alpha1.MoneroNodeSet) corev1.PodTemplateSpec 
 		},
 		Spec: corev1.PodSpec{
 			TerminationGracePeriodSeconds: pointer.Int64Ptr(60),
-			Volumes: []corev1.Volume{
-				{
-					Name: MonerodConfigVolumeName,
-					VolumeSource: corev1.VolumeSource{
-						ConfigMap: &corev1.ConfigMapVolumeSource{
-							LocalObjectReference: corev1.LocalObjectReference{
-								Name: nodeSet.Name,
-							},
-						},
-					},
-				},
-			},
 			Containers: []corev1.Container{
 				NewMonerodContainer(nodeSet),
 			},
