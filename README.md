@@ -4,7 +4,8 @@ A Kubernetes-native way of deploying [Monero] nodes, networks, and miners:
 express your intention and let Kubernetes run it for you.
 
 
-<hr />
+<br />
+<br />
 
 > **you:** _"Hi, I'd like two public nodes, and three miners please"._
 >
@@ -19,7 +20,8 @@ express your intention and let Kubernetes run it for you.
 > **k8s**: _"Good choice, pool concentration sucks - let me update your miners for you :)"_
 
 
-<hr />
+<br />
+<br />
 
 
 See [./docs](./docs) for detailed documentation about each resource.
