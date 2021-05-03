@@ -20,7 +20,7 @@ type MoneroNodeSet struct {
 
 type MoneroNodeSetSpec struct {
 	//+kubebuilder:default=1
-	Replicas         uint32 `json:"replicas"`
+	Replicas         uint32 `json:"replicas,omitempty"`
 	HardAntiAffinity bool   `json:"hardAntiAffinity,omitempty"`
 	//+kubebuilder:default="50Gi"
 	DiskSize     string `json:"diskSize,omitempty"`

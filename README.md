@@ -37,7 +37,7 @@ See [./docs](./docs) for detailed documentation about each resource.
   - [Mining cluster](#mining-cluster)
   - [Private network](#private-network)
 - [Install](#install)
-- [Support this project](#support-this-project)
+- [License](#license)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -266,20 +266,6 @@ kubectl apply -f ./config/release.yaml
 ```
 
 
-## Support this project
+## License
 
-All you see here has been done during my personal time as a way of helping the Monero community.
-
-Consider donating if you find this helpful or you make use of it :)
-
-![](assets/donate.png)
-
-891B5keCnwXN14hA9FoAzGFtaWmcuLjTDT5aRTp65juBLkbNpEhLNfgcBn6aWdGuBqBnSThqMPsGRjWVQadCrhoAT6CnSL3
-
-
-[Monero]: https://www.getmonero.org/
-[`monerod`]: https://monerodocs.org/interacting/monerod-reference/
-[Kubernetes]: https://kubernetes.io
-[`MoneroNodeSet`]: /cirocosta/monero-operator/tree/master/docs#moneronodeset
-[`MoneroMiningNodeSet`]: /cirocosta/monero-operator/tree/master/docs#monerominingnodeset
-[`MoneroNetwork`]: /cirocosta/monero-operator/tree/master/docs#moneronetwork
+See [./LICENSE](./LICENSE)

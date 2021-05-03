@@ -2,6 +2,10 @@ build:
 	go build -o cmd/controller/controller -v ./cmd/controller
 run: build
 	./cmd/controller/controller
+deploy:
+	kapp deploy -a monero -f ./config/release.yaml
+delete:
+	kapp delete -a monero --yes
 
 
 .PHONY: images

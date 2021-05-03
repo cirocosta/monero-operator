@@ -74,8 +74,6 @@ spec:
                         type: integer
                       storageClass:
                         type: string
-                    required:
-                    - replicas
                     type: object
                 required:
                 - spec
@@ -380,8 +378,6 @@ spec:
                 type: integer
               storageClass:
                 type: string
-            required:
-            - replicas
             type: object
           status:
             properties:

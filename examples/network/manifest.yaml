@@ -6,9 +6,7 @@ spec:
   replicas: 3
   template:
     spec:
-      replicas: 1
       monerod:
-        image: utxobr/monerod:v0.17.0.2
         args:
           - --regtest
           - --fixed-difficulty=1

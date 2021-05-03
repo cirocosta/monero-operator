@@ -20,7 +20,6 @@ func AppLabel(name string) map[string]string {
 func NewMonerodContainer(nodeSet *v1alpha1.MoneroNodeSet) corev1.Container {
 	defaultArgs := []string{
 		"--data-dir=" + MonerodDataVolumeMountPath,
-		"--log-file=/dev/stdout",
 
 		"--non-interactive",
 		"--no-zmq",
