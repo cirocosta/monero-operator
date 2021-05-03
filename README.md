@@ -1,6 +1,6 @@
 # monero-operator
 
-A Kubernetes-native way of deploying [Monero] nodes, networks, and miners:
+A [Kubernetes]-native way of deploying [Monero] nodes, networks, and miners:
 express your intention and let Kubernetes run it for you.
 
 
@@ -26,6 +26,9 @@ express your intention and let Kubernetes run it for you.
 
 See [./docs](./docs) for detailed documentation about each resource.
 
+<br />
+<br />
+
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
@@ -39,11 +42,14 @@ See [./docs](./docs) for detailed documentation about each resource.
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 
+<br />
+<br />
+
 ## Example
 
 ### Full node
 
-To run a single full node, all you need to do is create a single-replica `MoneroNodeSet`.
+To run a single full node, all you need to do is create a single-replica [`MoneroNodeSet`].
 
 ```yaml
 kind: MoneroNodeSet
@@ -54,7 +60,7 @@ spec:
   replicas: 1
 ```
 
-With a MoneroNodeSet you express the intention of having a set of `monerod`
+With a `MoneroNodeSet` you express the intention of having a set of [`monerod`]
 nodes running with a particular configuration: you express your intent, and
 `monero-operator` takes care of making it happen.
 
@@ -93,7 +99,9 @@ $ kubectl get pod full-node-0 -ojsonpath={.spec.containers[*].command} | jq '.'
 ]
 ```
 
-and a [PersistentVolumeClaim](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) attached with enough disk space for it.
+and a
+[PersistentVolumeClaim](https://kubernetes.io/docs/concepts/storage/persistent-volumes/)
+attached with enough disk space for it.
 
 ```
 $ kubectl get pvc
@@ -103,7 +111,7 @@ data-full-node-0   Bound    pvc-1c60e835-d5f9-41c9-8509-b0e4b3b71f6b   200Gi
 ```
 
 With that all being declarative, updating our node is a matter of expressing
-our new intent by updating the `MoneroNodeSet` definition, and letting the
+our new intent by updating the [`MoneroNodeSet`] definition, and letting the
 operator take care of updating things behind the scene.
 
 For instance, assuming we want to now make it public, accepting lots of peers,
@@ -136,7 +144,7 @@ that it has properly set readiness probes too? -, detaching the disk, etc etc).
 
 ### Mining cluster
 
-Similar to `MoneroNodeSet`, with a `MoneroMiningNodeSet` you express the
+Similar to [`MoneroNodeSet`], with a [`MoneroMiningNodeSet`] you express the
 intention of having a cluster o _x_ replicas running, and then the operator
 takes care of making that happen.
 
@@ -167,12 +175,18 @@ _pps.: `xmrig` is used under the hood_
 
 ### Private network
 
+With a [`MoneroNetwork`] you express the intention of having a network of
+inter-connected Monero nodes, taking care of not only bringing `monerod` up for
+you, but also providing the proper flags for each daemon so that they are
+exclusive nodes of themselves.
+
+For instance, consider the following private regtest setup:
 
 ```yaml
 kind: MoneroNetwork
 apiVersion: utxo.com.br/v1alpha1
 metadata:
-  name: network
+  name: regtest
 spec:
   replicas: 3
 
@@ -185,8 +199,63 @@ spec:
           - --fixed-difficulty=1
 ```
 
+Under the hood, the following tree of objects gets formed:
 
-## Usage
+```console
+$ kubectl tree moneronetwork.utxo.com.br regtest
+
+  NAME                                          
+  MoneroNetwork/regtest                         
+  ├─MoneroNodeSet/regtest-0                     
+  │ ├─Service/regtest-0                         
+  │ │ └─EndpointSlice/regtest-0-plf9m           
+  │ └─StatefulSet/regtest-0                     
+  │   ├─ControllerRevision/regtest-0-6dc6799f4b 
+  │   └─Pod/regtest-0-0                         
+  ├─MoneroNodeSet/regtest-1                     
+  │ ├─Service/regtest-1                         
+  │ │ └─EndpointSlice/regtest-1-7sd9z           
+  │ └─StatefulSet/regtest-1                     
+  │   ├─ControllerRevision/regtest-1-5b5c6b7b8d 
+  │   └─Pod/regtest-1-0                         
+  └─MoneroNodeSet/regtest-2                     
+    ├─Service/regtest-2                         
+    │ └─EndpointSlice/regtest-2-rhmd9           
+    └─StatefulSet/regtest-2                     
+      ├─ControllerRevision/regtest-2-7fdbcdb57b 
+      └─Pod/regtest-2-0                         
+
+```
+
+with each node with the flags properly set so that they are interconnected:
+
+```console
+$ kubectl get pods -ojsonpath={.items[*].spec.containers[*].command} | jq '.'
+[
+  "monerod",
+  "--add-exclusive-node=regtest-1",
+  "--add-exclusive-node=regtest-2",
+  "--fixed-difficulty=1",
+...
+]
+[
+  "monerod",
+  "--add-exclusive-node=regtest-0",
+  "--add-exclusive-node=regtest-2",
+  "--fixed-difficulty=1",
+...
+]
+[
+  "monerod",
+  "--add-exclusive-node=regtest-0",
+  "--add-exclusive-node=regtest-1",
+  "--fixed-difficulty=1",
+...
+]
+```
+
+
+## Install
 
 1. install
 
@@ -195,25 +264,6 @@ spec:
 # control configs, etc.
 #
 kubectl apply -f ./config/release.yaml
-```
-
-2. submit a description of the intention of having a `monero` node running
-
-```yaml
-apiVersion: utxo.com.br/v1alpha1
-kind: MoneroNodeSet
-spec:
-  replicas: 1
-  monerod:
-    image: utxobr/monerod:v0.17.2
-```
-
-(_see [`./docs`](./docs) for more details)_
-
-3. grab the details
-
-```console
-$ kubectl get moneronode node-1 -o jsonpath={.status}
 ```
 
 
@@ -229,3 +279,8 @@ Consider donating if you find this helpful or you make use of it :)
 
 
 [Monero]: https://www.getmonero.org/
+[`monerod`]: https://monerodocs.org/interacting/monerod-reference/
+[Kubernetes]: https://kubernetes.io
+[`MoneroNodeSet`]: /cirocosta/monero-operator/tree/master/docs#moneronodeset
+[`MoneroMiningNodeSet`]: /cirocosta/monero-operator/tree/master/docs#monerominingnodeset
+[`MoneroNetwork`]: /cirocosta/monero-operator/tree/master/docs#moneronetwork
