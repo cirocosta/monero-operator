@@ -3,7 +3,31 @@
 A Kubernetes-native way of deploying [Monero] nodes, networks, and miners:
 express your intention and let Kubernetes run it for you.
 
+
+> **you:** _"Hi, I'd like two public nodes, and three miners please"._
+
+> **k8s**: _"Sure thing"_
+
+> **k8s**: _"It looks like you want two public nodes, but I see 0 running - let me create them for you."_
+
+> **k8s**: _"It looks like you want three miners, but I see 0 running - let me create them for you."_
+
+
+
 See [./docs](./docs) for detailed documentation about each resource.
+
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Example](#example)
+  - [Full node](#full-node)
+  - [Mining cluster](#mining-cluster)
+  - [Private network](#private-network)
+- [Usage](#usage)
+- [Support this project](#support-this-project)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 
 ## Example
@@ -106,7 +130,7 @@ $ kubectl get moneronode node-1 -o jsonpath={.status}
 ```
 
 
-## Support
+## Support this project
 
 All you see here has been done during my personal time as a way of helping the Monero community.
 
