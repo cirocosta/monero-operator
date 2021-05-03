@@ -1,7 +1,0 @@
-apiVersion: utxo.com.br/v1alpha1
-kind: MoneroCluster
-spec:
-  nodes: 5
-  network: testnet
-  monerod:
-    image: utxobr/monerod:v0.17.2.0
