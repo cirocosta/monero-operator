@@ -1,16 +1,78 @@
 # monero-operator
 
-A Kubernetes-native way of deploying Monero nodes: express your intention and
-let Kubernetes run it for you.
+A Kubernetes-native way of deploying [Monero] nodes, networks, and miners:
+express your intention and let Kubernetes run it for you.
 
-Features:
+See [./docs](./docs) for detailed documentation about each resource.
 
-- start up from a pre-synced chain file
-- optional observability stack
-- Tor and I2P
-- notifications
 
-See [./docs](./docs).
+## Example
+
+### Full node
+
+Run a single public full node:
+
+```yaml
+kind: MoneroNodeSet
+apiVersion: utxo.com.br/v1alpha1
+metadata:
+  name: node-set
+spec:
+  replicas: 1
+  diskSize: 200Gi
+
+  monerod:
+    args:
+      - --public
+      - --enable-dns-blocklist
+      - --enforce-dns-checkpointing
+      - --out-peers=1024
+      - --in-peers=1024
+      - --limit-rate=128000
+```
+
+
+### Mining cluster
+
+Run a set of 5 miners spread across different Kubernetes nodes:
+
+```yaml
+kind: MoneroMiningNodeSet
+apiVersion: utxo.com.br/v1alpha1
+metadata:
+  name: miners
+spec:
+  replicas: 5
+  hardAntiAffinity: true
+
+  xmrig:
+    args:
+      - -o
+      - cryptonote.social:5556
+      - -u
+      - 891B5keCnwXN14hA9FoAzGFtaWmcuLjTDT5aRTp65juBLkbNpEhLNfgcBn6aWdGuBqBnSThqMPsGRjWVQadCrhoAT6CnSL3.node-$(id)
+      - --tls
+```
+
+
+### Private network
+
+```yaml
+kind: MoneroNetwork
+apiVersion: utxo.com.br/v1alpha1
+metadata:
+  name: network
+spec:
+  replicas: 3
+
+  template:
+    spec:
+      replicas: 1
+      monerod:
+        args:
+          - --regtest
+          - --fixed-difficulty=1
+```
 
 
 ## Usage
@@ -53,3 +115,6 @@ Consider donating if you find this helpful or you make use of it :)
 ![](assets/donate.png)
 
 891B5keCnwXN14hA9FoAzGFtaWmcuLjTDT5aRTp65juBLkbNpEhLNfgcBn6aWdGuBqBnSThqMPsGRjWVQadCrhoAT6CnSL3
+
+
+[Monero]: https://www.getmonero.org/

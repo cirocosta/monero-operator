@@ -29,6 +29,7 @@ type MoneroNodeSetSpec struct {
 }
 
 type MonerodConfig struct {
+	//+kubebuilder:default="index.docker.io/utxobr/monerod@sha256:19ba5793c00375e7115469de9c14fcad928df5867c76ab5de099e83f646e175d"
 	Image string   `json:"image,omitempty"`
 	Args  []string `json:"args,omitempty"`
 }
