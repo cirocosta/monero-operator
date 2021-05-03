@@ -191,7 +191,6 @@ spec:
 
   template:
     spec:
-      replicas: 1
       monerod:
         args:
           - --regtest
