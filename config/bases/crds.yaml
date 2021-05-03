@@ -10,6 +10,8 @@ metadata:
 spec:
   group: utxo.com.br
   names:
+    categories:
+    - monero
     kind: MoneroNetwork
     listKind: MoneroNetworkList
     plural: moneronetworks
@@ -173,14 +175,16 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: (devel)
   creationTimestamp: null
-  name: moneronodesets.utxo.com.br
+  name: monerominingnodesets.utxo.com.br
 spec:
   group: utxo.com.br
   names:
-    kind: MoneroNodeSet
-    listKind: MoneroNodeSetList
-    plural: moneronodesets
-    singular: moneronodeset
+    categories:
+    - monero
+    kind: MoneroMiningNodeSet
+    listKind: MoneroMiningNodeSetList
+    plural: monerominingnodesets
+    singular: monerominingnodeset
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
@@ -208,27 +212,22 @@ spec:
             type: object
           spec:
             properties:
-              diskSize:
-                default: 50Gi
-                type: string
               hardAntiAffinity:
                 type: boolean
-              monerod:
+              replicas:
+                default: 1
+                format: int32
+                type: integer
+              xmrig:
                 properties:
                   args:
                     items:
                       type: string
                     type: array
                   image:
-                    default: index.docker.io/utxobr/monerod@sha256:19ba5793c00375e7115469de9c14fcad928df5867c76ab5de099e83f646e175d
+                    default: index.docker.io/utxobr/xmrig@sha256:a0a231a6fc983885f7fb0ce68fffca027bb2fa032851539901b99ebbfd9140a1
                     type: string
                 type: object
-              replicas:
-                default: 1
-                format: int32
-                type: integer
-              storageClass:
-                type: string
             required:
             - replicas
             type: object
@@ -323,14 +322,16 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: (devel)
   creationTimestamp: null
-  name: monerominingnodesets.utxo.com.br
+  name: moneronodesets.utxo.com.br
 spec:
   group: utxo.com.br
   names:
-    kind: MoneroMiningNodeSet
-    listKind: MoneroMiningNodeSetList
-    plural: monerominingnodesets
-    singular: monerominingnodeset
+    categories:
+    - monero
+    kind: MoneroNodeSet
+    listKind: MoneroNodeSetList
+    plural: moneronodesets
+    singular: moneronodeset
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
@@ -358,22 +359,27 @@ spec:
             type: object
           spec:
             properties:
+              diskSize:
+                default: 50Gi
+                type: string
               hardAntiAffinity:
                 type: boolean
-              replicas:
-                default: 1
-                format: int32
-                type: integer
-              xmrig:
+              monerod:
                 properties:
                   args:
                     items:
                       type: string
                     type: array
                   image:
-                    default: index.docker.io/utxobr/xmrig@sha256:a0a231a6fc983885f7fb0ce68fffca027bb2fa032851539901b99ebbfd9140a1
+                    default: index.docker.io/utxobr/monerod@sha256:19ba5793c00375e7115469de9c14fcad928df5867c76ab5de099e83f646e175d
                     type: string
                 type: object
+              replicas:
+                default: 1
+                format: int32
+                type: integer
+              storageClass:
+                type: string
             required:
             - replicas
             type: object
