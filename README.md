@@ -5,12 +5,16 @@ express your intention and let Kubernetes run it for you.
 
 
 > **you:** _"Hi, I'd like two public nodes, and three miners please"._
-
+>
 > **k8s**: _"Sure thing"_
-
+>
 > **k8s**: _"It looks like you want two public nodes, but I see 0 running - let me create them for you."_
-
+>
 > **k8s**: _"It looks like you want three miners, but I see 0 running - let me create them for you."_
+>
+> **you:** _"Actually, I changed my mind - I don't want to mine on `minexmr`, I want `cryptonode.social`"._
+>
+> **k8s**: _"Good choice, pool concentration sucks - let me update your miners for you :)"_
 
 
 
