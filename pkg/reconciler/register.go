@@ -27,11 +27,15 @@ func AddToScheme(scheme *runtime.Scheme) error {
 
 func RegisterReconcilers(mgr manager.Manager) error {
 	if err := RegisterMoneroNodeSetReconciler(mgr); err != nil {
-		return fmt.Errorf("register moneronodeset reconciler: %w")
+		return fmt.Errorf("register nodeset reconciler: %w")
 	}
 
 	if err := RegisterMoneroNetworkReconciler(mgr); err != nil {
-		return fmt.Errorf("register moneronetwork reconciler: %w")
+		return fmt.Errorf("register network reconciler: %w")
+	}
+
+	if err := RegisterMoneroMiningNodeSetReconciler(mgr); err != nil {
+		return fmt.Errorf("register miningnodeset reconciler: %w")
 	}
 
 	return nil
@@ -71,6 +75,27 @@ func RegisterMoneroNodeSetReconciler(mgr manager.Manager) error {
 
 	if err := c.Watch(
 		&source.Kind{Type: &v1alpha1.MoneroNodeSet{}},
+		&handler.EnqueueRequestForObject{},
+	); err != nil {
+		return fmt.Errorf("watch: %w", err)
+	}
+
+	return nil
+}
+
+func RegisterMoneroMiningNodeSetReconciler(mgr manager.Manager) error {
+	c, err := controller.New("monerominingnodeset-reconciler", mgr, controller.Options{
+		Reconciler: &MoneroMiningNodeSetReconciler{
+			Log:    mgr.GetLogger().WithName("monerominingnodeset-reconciler"),
+			Client: mgr.GetClient(),
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("new controller: %w", err)
+	}
+
+	if err := c.Watch(
+		&source.Kind{Type: &v1alpha1.MoneroMiningNodeSet{}},
 		&handler.EnqueueRequestForObject{},
 	); err != nil {
 		return fmt.Errorf("watch: %w", err)
