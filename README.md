@@ -269,3 +269,11 @@ kubectl apply -f ./config/release.yaml
 ## License
 
 See [./LICENSE](./LICENSE)
+
+
+[Monero]: https://www.getmonero.org/
+[`monerod`]: https://monerodocs.org/interacting/monerod-reference/
+[Kubernetes]: https://kubernetes.io
+[`MoneroNodeSet`]: /cirocosta/monero-operator/tree/master/docs#moneronodeset
+[`MoneroMiningNodeSet`]: /cirocosta/monero-operator/tree/master/docs#monerominingnodeset
+[`MoneroNetwork`]: /cirocosta/monero-operator/tree/master/docs#moneronetwork
