@@ -27,22 +27,21 @@ express your intention and let Kubernetes run it for you.
 See [./docs](./docs) for detailed documentation about each resource.
 
 <br />
-<br />
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
 
 - [Example](#example)
   - [Full node](#full-node)
   - [Mining cluster](#mining-cluster)
   - [Private network](#private-network)
-- [Usage](#usage)
+- [Install](#install)
 - [Support this project](#support-this-project)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 
-<br />
 <br />
 
 ## Example
