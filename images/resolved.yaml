@@ -1,4 +1,5 @@
 ---
 images:
-- image: index.docker.io/utxobr/monerod@sha256:19ba5793c00375e7115469de9c14fcad928df5867c76ab5de099e83f646e175d
-- image: index.docker.io/utxobr/xmrig@sha256:a0a231a6fc983885f7fb0ce68fffca027bb2fa032851539901b99ebbfd9140a1
+- image: index.docker.io/utxobr/monerod@sha256:bd84c2346b1ac446d03879a11562e071f23628c71581b22485ae9db12a77c84f
+- image: index.docker.io/utxobr/xmrig@sha256:e502330d1570cdb5ca221935c6b24dc26d44c1c4bb3d19c9e9e94185b294be58
+- image: index.docker.io/utxobr/tornetes@sha256:3d103a73bca66fb27416b6bd23d3c66cd363157cd9f9d5a159157560ea4c48bf

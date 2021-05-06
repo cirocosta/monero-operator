@@ -62,7 +62,6 @@ spec:
                     spec:
                       properties:
                         diskSize:
-                          default: 50Gi
                           type: string
                         hardAntiAffinity:
                           type: boolean
@@ -73,15 +72,26 @@ spec:
                                 type: string
                               type: array
                             image:
-                              default: index.docker.io/utxobr/monerod@sha256:19ba5793c00375e7115469de9c14fcad928df5867c76ab5de099e83f646e175d
+                              default: ""
                               type: string
                           type: object
                         replicas:
-                          default: 1
                           format: int32
                           type: integer
                         storageClass:
                           type: string
+                        tor:
+                          properties:
+                            enabled:
+                              type: boolean
+                            secretRef:
+                              description: LocalObjectReference contains enough information to let you locate the referenced object inside the same namespace.
+                              properties:
+                                name:
+                                  description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?'
+                                  type: string
+                              type: object
+                          type: object
                       type: object
                   required:
                     - spec
@@ -304,7 +314,6 @@ spec:
             spec:
               properties:
                 diskSize:
-                  default: 50Gi
                   type: string
                 hardAntiAffinity:
                   type: boolean
@@ -315,15 +324,26 @@ spec:
                         type: string
                       type: array
                     image:
-                      default: index.docker.io/utxobr/monerod@sha256:19ba5793c00375e7115469de9c14fcad928df5867c76ab5de099e83f646e175d
+                      default: ""
                       type: string
                   type: object
                 replicas:
-                  default: 1
                   format: int32
                   type: integer
                 storageClass:
                   type: string
+                tor:
+                  properties:
+                    enabled:
+                      type: boolean
+                    secretRef:
+                      description: LocalObjectReference contains enough information to let you locate the referenced object inside the same namespace.
+                      properties:
+                        name:
+                          description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?'
+                          type: string
+                      type: object
+                  type: object
               type: object
             status:
               properties:
@@ -370,6 +390,11 @@ spec:
                       - type
                     type: object
                   type: array
+                tor:
+                  properties:
+                    address:
+                      type: string
+                  type: object
               type: object
           type: object
       served: true
@@ -403,7 +428,11 @@ spec:
       serviceAccount: monero-controller
       containers:
         - name: monero-controller
-          image: utxobr/controller-f62eb94ecf12d650192241a4cf3963c9@sha256:edf76d02316064d9efa31ee40ad24b3ddd4f97dcc17e1fef7e7c3068590e8ccb
+          image: utxobr/monero-operator-0f25b68d038cd3967cd5a1bc4733cad6@sha256:8be2ab0baaa3ed781aae4d2101858f760d905a57d525e99daf4a9ba8693e2504
+          command: [monero-operator, operator]
+          env:
+            - name: TOR_SIDECAR_IMAGE
+              value: utxobr/monero-operator-0f25b68d038cd3967cd5a1bc4733cad6@sha256:8be2ab0baaa3ed781aae4d2101858f760d905a57d525e99daf4a9ba8693e2504
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true

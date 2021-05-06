@@ -5,13 +5,21 @@ sources:
     path: ./images/monerod
   - image: xmrig
     path: ./images/xmrig
+  - image: tornetes
+    path: .
+    docker:
+      build:
+        file: ./images/tornetes/Dockerfile
 destinations:
   - image: monerod
     newImage: docker.io/utxobr/monerod
   - image: xmrig
     newImage: docker.io/utxobr/xmrig
+  - image: tornetes
+    newImage: docker.io/utxobr/tornetes
 
 ---
 images:
   - image: monerod
   - image: xmrig
+  - image: tornetes

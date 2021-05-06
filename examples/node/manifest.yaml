@@ -3,7 +3,6 @@ apiVersion: utxo.com.br/v1alpha1
 metadata:
   name: node
 spec:
-  replicas: 1
-  monerod:
-    args:
-      - --block-sync-size=500
+  replicas: 2
+  tor:
+    enabled: true

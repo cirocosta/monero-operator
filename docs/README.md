@@ -36,6 +36,8 @@ Its definition supports the following fields:
   this `MoneroNode` object. This must include:
   - `replicas` - number of pods to have running _monerod_
   - `hardAntiAffinity` - force pods to land on different underlying machines
+  - `tor` - whether the `tor` sidecar should be included or not to make it
+    available over Tor as a hidden service
   - `monerod` - Specifies the configuration for the
     monero daemon and details like related proxies for non-clearnet usage.
     - `image`: image to use for launching the pod with _monerod_
@@ -53,6 +55,7 @@ metadata:
   name: node-set
 spec:
   replicas: 5
+  tor: true
   monerod:
     image: utxobr/monerod:v0.17.0.2
     args:

@@ -1,7 +1,8 @@
 build:
-	go build -o cmd/controller/controller -v ./cmd/controller
+	go build -o cmd/monero-operator/monero-operator -v ./cmd/monero-operator
+	go build -o cmd/tornetes/tornetes -v ./cmd/tornetes
 run: build
-	./cmd/controller/controller
+	./cmd/monero-operator/monero-operator run
 deploy:
 	kapp deploy -a monero -f ./config/release.yaml
 delete:

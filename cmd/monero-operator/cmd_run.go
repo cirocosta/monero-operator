@@ -3,36 +3,29 @@ package main
 import (
 	"fmt"
 	"net/http"
-	"os"
 
-	"github.com/jessevdk/go-flags"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
-	"sigs.k8s.io/controller-runtime/pkg/log"
-	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
 
 	"github.com/cirocosta/monero-operator/pkg/reconciler"
 )
 
-func init() {
-	log.SetLogger(zap.New(zap.UseDevMode(true)))
-}
+type RunCommand struct{}
 
-var opts = struct {
-	Verbose bool `long:"verbose" short:"v" description:"dump all requests"`
-}{}
-
-func run() error {
+func (c *RunCommand) Execute(_ []string) error {
 	scheme := runtime.NewScheme()
-
 	if err := reconciler.AddToScheme(scheme); err != nil {
 		return fmt.Errorf("add to scheme: %w", err)
 	}
 
-	cfg := config.GetConfigOrDie()
-	if opts.Verbose {
+	cfg, err := config.GetConfig()
+	if err != nil {
+		return fmt.Errorf("get config: %w", err)
+	}
+
+	if globalOptions.Verbose {
 		cfg.WrapTransport = func(rt http.RoundTripper) http.RoundTripper {
 			return NewDumpTransport(rt)
 		}
@@ -57,18 +50,10 @@ func run() error {
 	return nil
 }
 
-func main() {
-	if _, err := flags.Parse(&opts); err != nil {
-		os.Exit(1)
-	}
-
-	entryLog := log.Log.WithName("entrypoint")
-	entryLog.Info("initializing")
-
-	if err := run(); err != nil {
-		entryLog.Error(err, "failed to initialize controller")
-		return
-	}
-
-	entryLog.Info("finished")
+func init() {
+	parser.AddCommand("run",
+		"Run Monero Operator",
+		"Run Monero Operator",
+		&RunCommand{},
+	)
 }
