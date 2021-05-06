@@ -1,0 +1,66 @@
+---
+#
+#     a secrets that "asks" for it to be filled with hidden service credentials
+#
+kind: Secret
+apiVersion: v1
+metadata:
+  name: tor
+  labels:
+    utxo.com.br/tor: "v3"
+
+
+---
+#
+#   fill a ConfigMap with the `torrc` to be loaded by the tor sidecar.
+#
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tor
+data:
+  torrc: |-
+    HiddenServiceDir /tor
+    HiddenServicePort 80 127.0.0.1:80
+    HiddenServiceVersion 3
+
+
+---
+#
+#     the deployment of our application with the application container, as well
+#     as a sidecar that carries the tor proxy, exposing our app to the tor
+#     network.
+#
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: foo
+  labels: {app: foo}
+spec:
+  selector:
+    matchLabels: {app: foo}
+  template:
+    metadata:
+      labels: {app: foo}
+    spec:
+      volumes:
+        - name: tor
+          projected:
+            sources:
+              - secret: {name: tor}
+              - configMap: {name: tor}
+      containers:
+        - image: nginx
+          name: my-main-container
+          ports:
+            - containerPort: 80
+        - image: index.docker.io/utxobr/tornetes@sha256:3d103a73bca66fb27416b6bd23d3c66cd363157cd9f9d5a159157560ea4c48bf
+          name: tornetes
+          command:
+            - tornetes
+            - run
+            - --source=/tor-original/..data
+            - --destination=/tor
+          volumeMounts:
+            - name: tor
+              mountPath: /tor-original

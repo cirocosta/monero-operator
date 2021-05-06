@@ -18,7 +18,11 @@ spec:
       serviceAccount: monero-controller
       containers:
         - name: monero-controller
-          image: ko://github.com/cirocosta/monero-operator/cmd/controller
+          image: ko://github.com/cirocosta/monero-operator/cmd/monero-operator
+          command: [ monero-operator, operator ]
+          env:
+            - name: TOR_SIDECAR_IMAGE
+              value: ko://github.com/cirocosta/monero-operator/cmd/monero-operator
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true

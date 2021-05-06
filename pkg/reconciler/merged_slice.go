@@ -11,7 +11,7 @@ func MergedSlice(a, b []string) []string {
 		check[val] = 1
 	}
 
-	for elem, _ := range check {
+	for elem := range check {
 		res = append(res, elem)
 	}
 

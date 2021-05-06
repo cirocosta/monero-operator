@@ -6,8 +6,6 @@ import (
 	"fmt"
 
 	"github.com/go-logr/logr"
-	appsv1 "k8s.io/api/apps/v1"
-	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -34,6 +32,8 @@ func (r *MoneroNodeSetReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		return EmptyResult(), fmt.Errorf("get moneronodeset: %w", err)
 	}
 
+	nodeSet.ApplyDefaults()
+
 	err = r.ReconcileMoneroNodeSet(ctx, nodeSet)
 	if err != nil {
 		return EmptyResult(), fmt.Errorf("reconcile moneronodeset: %w", err)
@@ -46,24 +46,22 @@ func (r *MoneroNodeSetReconciler) ReconcileMoneroNodeSet(
 	ctx context.Context,
 	nodeSet *v1alpha1.MoneroNodeSet,
 ) error {
-	if _, err := r.SetupService(ctx, nodeSet); err != nil {
-		return fmt.Errorf("setup service: %w", err)
+	objs, err := r.GenerateObjects(ctx, nodeSet)
+	if err != nil {
+		return fmt.Errorf("setup objs: %w", err)
 	}
 
-	if _, err := r.SetupStatefulSet(ctx, nodeSet); err != nil {
-		return fmt.Errorf("setup statefulset: %w", err)
+	if err := r.ApplyObjects(ctx, nodeSet, objs); err != nil {
+		return fmt.Errorf("apply objects: %w", err)
 	}
-
-	// perhaps .. wait until it's _really_ ready?
-	// - check if it's in sync, etc
 
 	nodeSet.Status.Conditions = []metav1.Condition{
 		{
 			Type:               "Ready",
 			Status:             metav1.ConditionTrue,
 			LastTransitionTime: metav1.Now(),
-			Reason:             "ObjectsSubmitted",
-			Message:            "configmap, service, and statefulset successfully submitted",
+			Reason:             "Succeeded",
+			Message:            "objects successfully applied",
 		},
 	}
 
@@ -74,34 +72,63 @@ func (r *MoneroNodeSetReconciler) ReconcileMoneroNodeSet(
 	return nil
 }
 
-func (r *MoneroNodeSetReconciler) SetupService(
+func (r *MoneroNodeSetReconciler) GenerateObjects(
 	ctx context.Context,
 	nodeSet *v1alpha1.MoneroNodeSet,
-) (*corev1.Service, error) {
+) ([]client.Object, error) {
+	objs := []client.Object{}
 
-	svc := NewService(nodeSet.Name, nodeSet.Namespace)
-	r.SetOwnerRef(nodeSet, svc)
+	if nodeSet.Spec.Tor.Enabled {
+		hiddenServiceSecret := NewTorHiddenServiceSecret(nodeSet)
+		torSecretsRec := &TorSecretsReconciler{}
 
-	if err := r.Apply(ctx, svc); err != nil {
-		return nil, fmt.Errorf("apply: %w", err)
+		if err := torSecretsRec.FillSecret(hiddenServiceSecret); err != nil {
+			return nil, fmt.Errorf("fill secret: %w", err)
+		}
+
+		hostname, found := hiddenServiceSecret.Data["hostname"]
+		if !found {
+			return nil, fmt.Errorf("tor hidden service secret '%s' should be filled but isn't - didn't find hostname",
+				hiddenServiceSecret.GetName(),
+			)
+		}
+		nodeSet.Status.Tor.Address = string(hostname)
+
+		objs = append(objs,
+			NewTorHiddenServiceService(nodeSet),
+			NewTorHiddenServiceDeployment(nodeSet),
+			NewTorProxyConfigMap(nodeSet),
+			NewTorHiddenServiceConfigMap(nodeSet),
+			hiddenServiceSecret,
+		)
 	}
 
-	return svc, nil
+	objs = append(objs,
+		NewMoneroService(nodeSet),
+		NewMoneroStatefulSet(nodeSet),
+	)
+
+	return objs, nil
 }
 
-func (r *MoneroNodeSetReconciler) SetupStatefulSet(
+func (r *MoneroNodeSetReconciler) ApplyObjects(
 	ctx context.Context,
 	nodeSet *v1alpha1.MoneroNodeSet,
-) (*appsv1.StatefulSet, error) {
+	objs []client.Object,
+) error {
+	for _, o := range objs {
+		r.SetOwnerRef(nodeSet, o)
 
-	ss := NewStatefulSet(nodeSet)
-	r.SetOwnerRef(nodeSet, ss)
-
-	if err := r.Apply(ctx, ss); err != nil {
-		return nil, fmt.Errorf("apply: %w", err)
+		if err := r.Apply(ctx, o); err != nil {
+			return fmt.Errorf("apply '%s %s': %w",
+				o.GetObjectKind().GroupVersionKind().String(),
+				o.GetName(),
+				err,
+			)
+		}
 	}
 
-	return ss, nil
+	return nil
 }
 
 func (r *MoneroNodeSetReconciler) GetMoneroNodeSet(
