@@ -3,6 +3,4 @@ apiVersion: utxo.com.br/v1alpha1
 metadata:
   name: node
 spec:
-  replicas: 2
-  tor:
-    enabled: true
+  replicas: 1
