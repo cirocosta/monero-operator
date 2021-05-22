@@ -1,12 +1,15 @@
 build:
 	go build -o cmd/monero-operator/monero-operator -v ./cmd/monero-operator
-	go build -o cmd/tornetes/tornetes -v ./cmd/tornetes
 run: build
-	./cmd/monero-operator/monero-operator run
+	./cmd/monero-operator/monero-operator metrics --monerod-address=http://node-1.sethsimmons.me:18089
 deploy:
 	kapp deploy -a monero -f ./config/release.yaml
 delete:
 	kapp delete -a monero --yes
+
+
+debug:
+	cd ./cmd/monero-operator && dlv debug -- metrics --monerod-address=http://node-1.sethsimmons.me:18089
 
 
 .PHONY: images

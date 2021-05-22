@@ -409,43 +409,6 @@ status:
   storedVersions: []
 
 ---
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: monero-controller
-  namespace: monero-system
-spec:
-  selector:
-    matchLabels:
-      app: monero-controller
-  replicas: 1
-  revisionHistoryLimit: 0
-  template:
-    metadata:
-      labels:
-        app: monero-controller
-    spec:
-      serviceAccount: monero-controller
-      containers:
-        - name: monero-controller
-          image: utxobr/monero-operator-0f25b68d038cd3967cd5a1bc4733cad6@sha256:8be2ab0baaa3ed781aae4d2101858f760d905a57d525e99daf4a9ba8693e2504
-          command: [monero-operator, operator]
-          env:
-            - name: TOR_SIDECAR_IMAGE
-              value: utxobr/monero-operator-0f25b68d038cd3967cd5a1bc4733cad6@sha256:8be2ab0baaa3ed781aae4d2101858f760d905a57d525e99daf4a9ba8693e2504
-          securityContext:
-            allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: true
-            runAsNonRoot: true
-            capabilities:
-              drop:
-                - all
-          resources:
-            requests:
-              cpu: 200m
-              memory: 200Mi
-
----
 kind: Namespace
 apiVersion: v1
 metadata:
