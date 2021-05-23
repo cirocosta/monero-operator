@@ -203,7 +203,6 @@ func NewTornetesContainer(nodeSet *v1alpha1.MoneroNodeSet) corev1.Container {
 func NewMonerodContainer(nodeSet *v1alpha1.MoneroNodeSet) corev1.Container {
 	defaultArgs := []string{
 		"--data-dir=" + MonerodDataVolumeMountPath,
-		"--log-level=1",
 		"--log-file=/dev/stdout",
 
 		"--non-interactive",
@@ -242,6 +241,13 @@ func NewMonerodContainer(nodeSet *v1alpha1.MoneroNodeSet) corev1.Container {
 					Port: intstr.FromString(MonerodContainerProbePort),
 				},
 			},
+		},
+		Resources: corev1.ResourceRequirements{
+			Limits: corev1.ResourceList{
+				corev1.ResourceHugePagesPrefix + "2Mi": resource.MustParse("1Gi"),
+				corev1.ResourceMemory:                  resource.MustParse("1Gi"),
+			},
+			Requests: corev1.ResourceList{},
 		},
 		Ports: []corev1.ContainerPort{
 			{
@@ -395,7 +401,6 @@ func NewTorHiddenServiceService(nodeSet *v1alpha1.MoneroNodeSet) *corev1.Service
 			},
 		},
 	}
-
 	return obj
 }
 
@@ -436,6 +441,13 @@ func NewMoneroService(nodeSet *v1alpha1.MoneroNodeSet) *corev1.Service {
 				Protocol:   corev1.ProtocolTCP,
 			},
 		},
+	}
+
+	if nodeSet.Spec.Service.Type == "NodePort" {
+		obj.Spec.Type = corev1.ServiceTypeNodePort
+		for idx := range obj.Spec.Ports {
+			obj.Spec.Ports[idx].NodePort = obj.Spec.Ports[idx].Port + 30000 - 18000
+		}
 	}
 
 	return obj

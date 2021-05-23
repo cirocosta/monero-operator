@@ -1,6 +1,17 @@
 kind: MoneroNodeSet
 apiVersion: utxo.com.br/v1alpha1
 metadata:
-  name: minimal
+  name: production
 spec:
   replicas: 1
+  diskSize: 300Gi
+
+  service:
+    type: NodePort
+
+  monerod:
+    args:
+      - --out-peers=128
+      - --in-peers=128
+      - --limit-rate=1048576
+      - --public-node

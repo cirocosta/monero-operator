@@ -70,6 +70,13 @@ spec:
                       replicas:
                         format: int32
                         type: integer
+                      service:
+                        properties:
+                          type:
+                            type: string
+                        required:
+                        - type
+                        type: object
                       storageClass:
                         type: string
                       tor:
@@ -388,6 +395,13 @@ spec:
               replicas:
                 format: int32
                 type: integer
+              service:
+                properties:
+                  type:
+                    type: string
+                required:
+                - type
+                type: object
               storageClass:
                 type: string
               tor:

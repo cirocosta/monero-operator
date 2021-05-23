@@ -24,13 +24,18 @@ func (self *MoneroNodeSet) ApplyDefaults() {
 }
 
 type MoneroNodeSetSpec struct {
-	Replicas         uint32          `json:"replicas,omitempty"`
-	HardAntiAffinity bool            `json:"hardAntiAffinity,omitempty"`
-	DiskSize         string          `json:"diskSize,omitempty"`
-	StorageClass     string          `json:"storageClass,omitempty"`
-	Tor              MoneroTorConfig `json:"tor,omitempty"`
+	Replicas         uint32               `json:"replicas,omitempty"`
+	HardAntiAffinity bool                 `json:"hardAntiAffinity,omitempty"`
+	DiskSize         string               `json:"diskSize,omitempty"`
+	Service          MoneroNodeSetService `json:"service,omitempty"`
+	StorageClass     string               `json:"storageClass,omitempty"`
+	Tor              MoneroTorConfig      `json:"tor,omitempty"`
 
 	Monerod MonerodConfig `json:"monerod,omitempty"`
+}
+
+type MoneroNodeSetService struct {
+	Type string `json:"type"`
 }
 
 func (self *MoneroNodeSetSpec) ApplyDefaults() {
