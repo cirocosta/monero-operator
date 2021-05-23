@@ -1,6 +1,6 @@
 kind: MoneroNodeSet
 apiVersion: utxo.com.br/v1alpha1
 metadata:
-  name: node
+  name: minimal
 spec:
   replicas: 1
