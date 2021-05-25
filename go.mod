@@ -3,7 +3,7 @@ module github.com/cirocosta/monero-operator
 go 1.16
 
 require (
-	github.com/cirocosta/go-monero v0.0.0-20210522172358-da415428b909
+	github.com/cirocosta/go-monero v0.0.0-20210522223237-fd03dfddd5ca
 	github.com/fsnotify/fsnotify v1.4.9
 	github.com/go-logr/logr v0.4.0
 	github.com/jessevdk/go-flags v1.5.0

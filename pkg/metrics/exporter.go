@@ -69,6 +69,11 @@ func (e *Exporter) Run(ctx context.Context) error {
 	go func() {
 		defer close(doneChan)
 
+		e.log.WithValues(
+			"addr", e.listenAddress,
+			"path", e.telemetryPath,
+		).Info("listening")
+
 		http.Handle(e.telemetryPath, promhttp.Handler())
 		if err := http.Serve(e.listener, nil); err != nil {
 			doneChan <- fmt.Errorf(
