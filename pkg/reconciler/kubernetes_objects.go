@@ -425,7 +425,8 @@ func NewMoneroService(nodeSet *v1alpha1.MoneroNodeSet) *corev1.Service {
 	}
 
 	obj.Spec = corev1.ServiceSpec{
-		Selector: l,
+		Selector:              l,
+		ExternalTrafficPolicy: corev1.ServiceExternalTrafficPolicyTypeLocal,
 		Ports: []corev1.ServicePort{
 			{
 				Name:       P2PPortName,
@@ -448,6 +449,7 @@ func NewMoneroService(nodeSet *v1alpha1.MoneroNodeSet) *corev1.Service {
 		for idx := range obj.Spec.Ports {
 			obj.Spec.Ports[idx].NodePort = obj.Spec.Ports[idx].Port + 30000 - 18000
 		}
+
 	}
 
 	return obj
