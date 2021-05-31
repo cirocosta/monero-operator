@@ -1,3 +1,11 @@
 METRICS
 
-	- tx relays?
+	- number of txs relayed by us
+	- incoming & outgoing bandwidth per second
+	- total bandwidth used since last restart
+	- incoming messages per command
+	- outgoing messages per command?
+	- number of blocks sent (cumulative)
+	- number of blocks received (cumulative)
+	- requests per rpc endpoint
+	- fee estimation

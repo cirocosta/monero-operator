@@ -3,13 +3,17 @@ package main
 import (
 	"context"
 	"fmt"
+	"net"
 
 	"github.com/cirocosta/go-monero/pkg/daemonrpc"
+	"github.com/oschwald/geoip2-golang"
+
 	"github.com/cirocosta/monero-operator/pkg/metrics"
 )
 
 type MetricsCommand struct {
 	MonerodAddress string `long:"monerod-address" required:"true"`
+	GeoIPFile      string `long:"geoip-file" default:"./hack/geoip.mmdb"`
 }
 
 func (c *MetricsCommand) Execute(_ []string) error {
@@ -24,7 +28,22 @@ func (c *MetricsCommand) Execute(_ []string) error {
 		return fmt.Errorf("new client '%s': %w", c.MonerodAddress, err)
 	}
 
-	if err := metrics.RegisterCollector(daemonClient); err != nil {
+	db, err := geoip2.Open(c.GeoIPFile)
+	if err != nil {
+		return fmt.Errorf("geoip open: %w", err)
+	}
+	defer db.Close()
+
+	countryMapper := func(ip net.IP) (string, error) {
+		res, err := db.Country(ip)
+		if err != nil {
+			return "", fmt.Errorf("country '%s': %w", ip, err)
+		}
+
+		return res.RegisteredCountry.IsoCode, nil
+	}
+
+	if err := metrics.RegisterCollector(daemonClient, metrics.WithCountryMapper(countryMapper)); err != nil {
 		return fmt.Errorf("new collector: %w", err)
 	}
 

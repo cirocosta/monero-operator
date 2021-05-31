@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"net"
 	"reflect"
 	"strconv"
 	"time"
@@ -16,15 +17,32 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
+type CountryMapper func(net.IP) (string, error)
+
 type Collector struct {
 	client *daemonrpc.Client
 	log    logr.Logger
+
+	countryMapper CountryMapper
 }
 
-func RegisterCollector(client *daemonrpc.Client) error {
+type CollectorOpt func(c *Collector)
+
+func WithCountryMapper(v CountryMapper) func(c *Collector) {
+	return func(c *Collector) {
+		c.countryMapper = v
+	}
+}
+
+func RegisterCollector(client *daemonrpc.Client, opts ...CollectorOpt) error {
 	c := &Collector{
-		client: client,
-		log:    log.Log.WithName("collector"),
+		client:        client,
+		log:           log.Log.WithName("collector"),
+		countryMapper: func(_ net.IP) (string, error) { return "lol", nil },
+	}
+
+	for _, opt := range opts {
+		opt(c)
 	}
 
 	if err := prometheus.Register(c); err != nil {
@@ -57,6 +75,9 @@ func (c *Collector) Collect(ch chan<- prometheus.Metric) {
 		{"last_block_header", c.CollectLastBlockHeader},
 		{"bans", c.CollectBans},
 		{"peer_height_divergence", c.CollectPeerHeightDivergence},
+		{"fee_estimate", c.CollectFeeEstimate},
+		{"peers", c.CollectPeers},
+		{"connections", c.CollectConnections},
 	} {
 		collector := collector
 
@@ -74,6 +95,74 @@ func (c *Collector) Collect(ch chan<- prometheus.Metric) {
 	}
 
 	return
+}
+
+func (c *Collector) CollectConnections(ctx context.Context, ch chan<- prometheus.Metric) error {
+	res, err := c.client.GetConnections(ctx)
+	if err != nil {
+		return fmt.Errorf("get connections: %w", err)
+	}
+
+	perCountryCounter := map[string]uint64{}
+	for _, conn := range res.Connections {
+		country, err := c.countryMapper(net.ParseIP(conn.Host))
+		if err != nil {
+			return fmt.Errorf("to country '%s': %w", conn.Host, err)
+		}
+
+		perCountryCounter[country] += 1
+	}
+
+	desc := prometheus.NewDesc(
+		"monero_connections",
+		"connections info",
+		[]string{"country"}, nil,
+	)
+
+	for country, count := range perCountryCounter {
+		ch <- prometheus.MustNewConstMetric(
+			desc,
+			prometheus.GaugeValue,
+			float64(count),
+			country,
+		)
+	}
+
+	return nil
+}
+
+func (c *Collector) CollectPeers(ctx context.Context, ch chan<- prometheus.Metric) error {
+	res, err := c.client.GetPeerList(ctx)
+	if err != nil {
+		return fmt.Errorf("get peer list: %w", err)
+	}
+
+	perCountryCounter := map[string]uint64{}
+	for _, peer := range res.WhiteList {
+		country, err := c.countryMapper(net.ParseIP(peer.Host))
+		if err != nil {
+			return fmt.Errorf("to country '%s': %w", peer.Host, err)
+		}
+
+		perCountryCounter[country] += 1
+	}
+
+	desc := prometheus.NewDesc(
+		"monero_peers_new",
+		"peers info",
+		[]string{"country"}, nil,
+	)
+
+	for country, count := range perCountryCounter {
+		ch <- prometheus.MustNewConstMetric(
+			desc,
+			prometheus.GaugeValue,
+			float64(count),
+			country,
+		)
+	}
+
+	return nil
 }
 
 func (c *Collector) CollectLastBlockHeader(ctx context.Context, ch chan<- prometheus.Metric) error {
@@ -156,26 +245,44 @@ func (c *Collector) CollectPeerHeightDivergence(ctx context.Context, ch chan<- p
 	return nil
 }
 
+func (c *Collector) CollectFeeEstimate(ctx context.Context, ch chan<- prometheus.Metric) error {
+	res, err := c.client.GetFeeEstimate(ctx, 1)
+	if err != nil {
+		return fmt.Errorf("get fee estimate: %w", err)
+	}
+
+	desc := prometheus.NewDesc(
+		"monero_fee_estimate",
+		"fee estimate for 1 grace block",
+		nil, nil,
+	)
+
+	ch <- prometheus.MustNewConstMetric(
+		desc,
+		prometheus.GaugeValue,
+		float64(res.Fee),
+	)
+
+	return nil
+}
+
 func (c *Collector) CollectBans(ctx context.Context, ch chan<- prometheus.Metric) error {
 	res, err := c.client.GetBans(ctx)
 	if err != nil {
 		return fmt.Errorf("get bans: %w", err)
 	}
 
-	var bans = struct {
-		Count int `json:"count"`
-	}{
-		Count: len(res.Bans),
-	}
+	desc := prometheus.NewDesc(
+		"monero_bans",
+		"number of nodes banned",
+		nil, nil,
+	)
 
-	metrics, err := c.toMetrics("bans", &bans)
-	if err != nil {
-		return fmt.Errorf("to metrics: %w", err)
-	}
-
-	for _, metric := range metrics {
-		ch <- metric
-	}
+	ch <- prometheus.MustNewConstMetric(
+		desc,
+		prometheus.GaugeValue,
+		float64(len(res.Bans)),
+	)
 
 	return nil
 }

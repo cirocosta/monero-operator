@@ -8,10 +8,12 @@ require (
 	github.com/fsnotify/fsnotify v1.4.9
 	github.com/go-logr/logr v0.4.0
 	github.com/jessevdk/go-flags v1.5.0
+	github.com/oschwald/geoip2-golang v1.5.0
 	github.com/prometheus/client_golang v1.10.0
 	github.com/valyala/fasttemplate v1.2.1
 	golang.org/x/crypto v0.0.0-20201002170205-7f63de1d35b0
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
+	golang.org/x/sys v0.0.0-20210531080801-fdfd190a6549 // indirect
 	golang.org/x/tools v0.1.0 // indirect
 	k8s.io/api v0.20.2
 	k8s.io/apimachinery v0.20.2
