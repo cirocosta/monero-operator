@@ -1,4 +1,9 @@
 METRICS
+	- last block vin distribution
+	- last block vout distribution
+	- last block size distribution
+
+
 
 	- number of txs relayed by us
 	- incoming & outgoing bandwidth per second

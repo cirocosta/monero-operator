@@ -78,6 +78,7 @@ func (c *Collector) Collect(ch chan<- prometheus.Metric) {
 		{"fee_estimate", c.CollectFeeEstimate},
 		{"peers", c.CollectPeers},
 		{"connections", c.CollectConnections},
+		{"last_block_stats", c.CollectLastBlockStats},
 	} {
 		collector := collector
 
@@ -197,6 +198,84 @@ func (c *Collector) CollectInfoStats(ctx context.Context, ch chan<- prometheus.M
 	for _, metric := range metrics {
 		ch <- metric
 	}
+
+	return nil
+}
+
+func (c *Collector) CollectLastBlockStats(ctx context.Context, ch chan<- prometheus.Metric) error {
+	lastBlockHeaderResp, err := c.client.GetLastBlockHeader(ctx)
+	if err != nil {
+		return fmt.Errorf("get last block header: %w", err)
+	}
+
+	currentHeight := lastBlockHeaderResp.BlockHeader.Height
+
+	block, err := c.client.GetBlock(ctx, currentHeight)
+	if err != nil {
+		return fmt.Errorf("get block '%d': %w", currentHeight, err)
+	}
+
+	blockJson, err := block.InnerJSON()
+	if err != nil {
+		return fmt.Errorf("block inner json: %w", err)
+	}
+
+	txnsResp, err := c.client.GetTransactions(ctx, blockJson.TxHashes)
+	if err != nil {
+		return fmt.Errorf("get txns: %w", err)
+	}
+
+	txns, err := txnsResp.GetTransactions()
+	if err != nil {
+		return fmt.Errorf("get transactions: %w", err)
+	}
+
+	phis := []float64{0.25, 0.50, 0.75, 0.90, 0.95, 0.99, 1}
+
+	var (
+		streamVin    = quantile.NewTargeted(phis...)
+		sumVin       = float64(0)
+		quantilesVin = make(map[float64]float64, len(phis))
+
+		streamVout    = quantile.NewTargeted(phis...)
+		sumVout       = float64(0)
+		quantilesVout = make(map[float64]float64, len(phis))
+	)
+
+	for _, txn := range txns {
+		streamVin.Insert(float64(len(txn.Vin)))
+		sumVin += float64(len(txn.Vin))
+
+		streamVout.Insert(float64(len(txn.Vout)))
+		sumVout += float64(len(txn.Vout))
+	}
+
+	for _, phi := range phis {
+		quantilesVin[phi] = streamVin.Query(phi)
+		quantilesVout[phi] = streamVout.Query(phi)
+	}
+
+	ch <- prometheus.MustNewConstSummary(
+		prometheus.NewDesc(
+			"monero_last_block_vout",
+			"distribution of outputs in last block",
+			nil, nil,
+		),
+		uint64(streamVout.Count()),
+		sumVout,
+		quantilesVout,
+	)
+
+	ch <- prometheus.MustNewConstSummary(
+		prometheus.NewDesc(
+			"monero_last_block_vin",
+			"distribution of inputs in last block",
+			nil, nil,
+		),
+		uint64(streamVin.Count()),
+		sumVin,
+		quantilesVin,
+	)
 
 	return nil
 }
