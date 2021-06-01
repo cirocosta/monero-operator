@@ -81,6 +81,7 @@ func (c *Collector) Collect(ch chan<- prometheus.Metric) {
 		{"last_block_stats", c.CollectLastBlockStats},
 		{"peers_live_time", c.CollectPeersLiveTime},
 		{"net_stats", c.CollectNetStats},
+		{"collect_rpc", c.CollectRPC},
 	} {
 		collector := collector
 
@@ -450,6 +451,43 @@ func (c *Collector) CollectFeeEstimate(ctx context.Context, ch chan<- prometheus
 		prometheus.GaugeValue,
 		float64(res.Fee),
 	)
+
+	return nil
+}
+
+func (c *Collector) CollectRPC(ctx context.Context, ch chan<- prometheus.Metric) error {
+	res, err := c.client.RPCAccessTracking(ctx)
+	if err != nil {
+		return fmt.Errorf("rpc access tracking: %w", err)
+	}
+
+	descCount := prometheus.NewDesc(
+		"monero_rpc_count",
+		"todo",
+		[]string{"method"}, nil,
+	)
+
+	descTime := prometheus.NewDesc(
+		"monero_rpc_time",
+		"todo",
+		[]string{"method"}, nil,
+	)
+
+	for _, d := range res.Data {
+		ch <- prometheus.MustNewConstMetric(
+			descCount,
+			prometheus.CounterValue,
+			float64(d.Count),
+			d.RPC,
+		)
+
+		ch <- prometheus.MustNewConstMetric(
+			descTime,
+			prometheus.CounterValue,
+			float64(d.Time),
+			d.RPC,
+		)
+	}
 
 	return nil
 }
