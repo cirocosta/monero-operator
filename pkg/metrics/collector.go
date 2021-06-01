@@ -79,6 +79,8 @@ func (c *Collector) Collect(ch chan<- prometheus.Metric) {
 		{"peers", c.CollectPeers},
 		{"connections", c.CollectConnections},
 		{"last_block_stats", c.CollectLastBlockStats},
+		{"peers_live_time", c.CollectPeersLiveTime},
+		{"net_stats", c.CollectNetStats},
 	} {
 		collector := collector
 
@@ -233,6 +235,10 @@ func (c *Collector) CollectLastBlockStats(ctx context.Context, ch chan<- prometh
 	phis := []float64{0.25, 0.50, 0.75, 0.90, 0.95, 0.99, 1}
 
 	var (
+		streamTxnSize    = quantile.NewTargeted(phis...)
+		sumTxnSize       = float64(0)
+		quantilesTxnSize = make(map[float64]float64, len(phis))
+
 		streamVin    = quantile.NewTargeted(phis...)
 		sumVin       = float64(0)
 		quantilesVin = make(map[float64]float64, len(phis))
@@ -241,6 +247,11 @@ func (c *Collector) CollectLastBlockStats(ctx context.Context, ch chan<- prometh
 		sumVout       = float64(0)
 		quantilesVout = make(map[float64]float64, len(phis))
 	)
+
+	for _, txn := range txnsResp.TxsAsHex {
+		streamTxnSize.Insert(float64(len(txn)))
+		sumTxnSize += float64(len(txn))
+	}
 
 	for _, txn := range txns {
 		streamVin.Insert(float64(len(txn.Vin)))
@@ -251,9 +262,21 @@ func (c *Collector) CollectLastBlockStats(ctx context.Context, ch chan<- prometh
 	}
 
 	for _, phi := range phis {
+		quantilesTxnSize[phi] = streamTxnSize.Query(phi)
 		quantilesVin[phi] = streamVin.Query(phi)
 		quantilesVout[phi] = streamVout.Query(phi)
 	}
+
+	ch <- prometheus.MustNewConstSummary(
+		prometheus.NewDesc(
+			"monero_last_block_txn_size",
+			"distribution of tx sizes",
+			nil, nil,
+		),
+		uint64(streamTxnSize.Count()),
+		sumTxnSize,
+		quantilesTxnSize,
+	)
 
 	ch <- prometheus.MustNewConstSummary(
 		prometheus.NewDesc(
@@ -319,6 +342,73 @@ func (c *Collector) CollectPeerHeightDivergence(ctx context.Context, ch chan<- p
 		uint64(stream.Count()),
 		sum,
 		quantiles,
+	)
+
+	return nil
+}
+
+func (c *Collector) CollectPeersLiveTime(ctx context.Context, ch chan<- prometheus.Metric) error {
+	res, err := c.client.GetConnections(ctx)
+	if err != nil {
+		return fmt.Errorf("get connections: %w", err)
+	}
+
+	var (
+		phis      = []float64{0.25, 0.50, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95, 0.99}
+		sum       = float64(0)
+		stream    = quantile.NewTargeted(phis...)
+		quantiles = make(map[float64]float64, len(phis))
+	)
+
+	for _, conn := range res.Connections {
+		stream.Insert(float64(conn.LiveTime))
+		sum += float64(conn.LiveTime)
+	}
+
+	for _, phi := range phis {
+		quantiles[phi] = stream.Query(phi)
+	}
+
+	desc := prometheus.NewDesc(
+		"monero_connections_livetime",
+		"peers livetime distribution",
+		nil, nil,
+	)
+
+	ch <- prometheus.MustNewConstSummary(
+		desc,
+		uint64(stream.Count()),
+		sum,
+		quantiles,
+	)
+
+	return nil
+}
+
+func (c *Collector) CollectNetStats(ctx context.Context, ch chan<- prometheus.Metric) error {
+	res, err := c.client.GetNetStats(ctx)
+	if err != nil {
+		return fmt.Errorf("get fee estimate: %w", err)
+	}
+
+	ch <- prometheus.MustNewConstMetric(
+		prometheus.NewDesc(
+			"monero_net_total_in_bytes",
+			"network statistics",
+			nil, nil,
+		),
+		prometheus.CounterValue,
+		float64(res.TotalBytesIn),
+	)
+
+	ch <- prometheus.MustNewConstMetric(
+		prometheus.NewDesc(
+			"monero_net_total_out_bytes",
+			"network statistics",
+			nil, nil,
+		),
+		prometheus.CounterValue,
+		float64(res.TotalBytesOut),
 	)
 
 	return nil
