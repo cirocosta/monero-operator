@@ -1,16 +1,15 @@
 METRICS
-	- last block vin distribution
-	- last block vout distribution
-	- last block size distribution
+	- last tx size distribution
 
+	p2p
+		- number of txs relayed by us
+		- incoming messages per command
+		- outgoing messages per command?
 
+	sync
+		- number of blocks sent (cumulative)
+		- number of blocks received (cumulative)
 
-	- number of txs relayed by us
-	- incoming & outgoing bandwidth per second
-	- total bandwidth used since last restart
-	- incoming messages per command
-	- outgoing messages per command?
-	- number of blocks sent (cumulative)
-	- number of blocks received (cumulative)
-	- requests per rpc endpoint
-	- fee estimation
+	rpc usage
+		- requests per rpc endpoint
+
